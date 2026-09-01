@@ -1,7 +1,10 @@
-import { SectionPlaceholder } from "@/components/admin/SectionPlaceholder";
+import { ContactsSection } from "@/components/admin/ContactsSection";
+import { Guard } from "@/lib/auth/Guard";
 
 export default function Page() {
   return (
-    <SectionPlaceholder permission="contacts.view" titleKey="admin.contacts" />
+    <Guard permission="contacts.view">
+      <ContactsSection />
+    </Guard>
   );
 }

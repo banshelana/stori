@@ -69,6 +69,10 @@ export interface User extends UserBasicInfo, UserDetails {
   subRole: SubRole;
   createdAt: string;
   avatarColor?: string;
+  /** Uploaded profile photo as a data URL; falls back to coloured initials. */
+  avatarUrl?: string;
+  /** A disabled account keeps its data but cannot sign in. */
+  active: boolean;
 }
 
 export interface Session {

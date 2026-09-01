@@ -2,6 +2,13 @@
 
 import { useMemo, useState } from "react";
 import { Card, PageHeader } from "@/components/panel/ui";
+import {
+  ReadOnlyField,
+  SelectField,
+  TextField,
+} from "@/components/form/Field";
+import { AvatarUpload } from "@/components/form/ImageUpload";
+import { useFormErrors } from "@/lib/useFormErrors";
 import { useI18n } from "@/i18n/I18nProvider";
 import { useAuth } from "@/lib/auth/auth-context";
 import { formatPercent } from "@/lib/format";
@@ -14,13 +21,14 @@ export function ProfileForm() {
   const { user, updateProfile, pending } = useAuth();
   const { t, locale } = useI18n();
 
+  const [avatarUrl, setAvatarUrl] = useState(user?.avatarUrl);
   const [form, setForm] = useState({
     email: user?.email ?? "",
     phone: user?.phone ?? "",
     age: user?.age != null ? String(user.age) : "",
     sex: user?.sex ?? "",
   });
-  const [errors, setErrors] = useState<Record<string, string>>({});
+  const { errors, setErrors, clear } = useFormErrors();
   const [saved, setSaved] = useState(false);
 
   // Basic info is fixed at registration; the details block is what the
@@ -32,6 +40,7 @@ export function ProfileForm() {
       user.phone,
       user.age,
       user.sex,
+      user.avatarUrl,
       user.addresses?.length,
     ];
     return fields.filter(Boolean).length / fields.length;
@@ -41,6 +50,7 @@ export function ProfileForm() {
 
   function set(key: keyof typeof form, value: string) {
     setForm((prev) => ({ ...prev, [key]: value }));
+    clear(key);
     setSaved(false);
   }
 
@@ -54,6 +64,7 @@ export function ProfileForm() {
     if (Object.keys(next).length > 0) return;
 
     await updateProfile({
+      avatarUrl,
       email: form.email.trim() || undefined,
       phone: form.phone.trim() || undefined,
       age: form.age ? Number(toAsciiDigits(form.age)) : undefined,
@@ -74,10 +85,30 @@ export function ProfileForm() {
               {t("account.basicInfoHint")}
             </p>
 
-            <dl className="mt-4 grid gap-4 sm:grid-cols-3">
-              <ReadOnly label={t("auth.firstName")} value={user.firstName} />
-              <ReadOnly label={t("auth.lastName")} value={user.lastName} />
-              <ReadOnly label={t("auth.mobile")} value={user.mobile} ltr />
+            <div className="mt-4 border-b border-slate-100 pb-5">
+              <AvatarUpload
+                value={avatarUrl}
+                onChange={(next) => {
+                  setAvatarUrl(next);
+                  setSaved(false);
+                }}
+                fallbackColor={user.avatarColor}
+                fallbackText={`${user.firstName[0] ?? ""}${
+                  user.lastName[0] ?? ""
+                }`.toUpperCase()}
+              />
+            </div>
+
+            <dl className="mt-5 grid gap-4 sm:grid-cols-3">
+              <ReadOnlyField
+                label={t("auth.firstName")}
+                value={user.firstName}
+              />
+              <ReadOnlyField
+                label={t("auth.lastName")}
+                value={user.lastName}
+              />
+              <ReadOnlyField label={t("auth.mobile")} value={user.mobile} ltr />
             </dl>
           </Card>
 
@@ -91,50 +122,36 @@ export function ProfileForm() {
 
             <form onSubmit={handleSubmit} className="mt-4 space-y-4" noValidate>
               <div className="grid gap-4 sm:grid-cols-2">
-                <Field
-                  id="email"
+                <TextField
                   label={t("account.email")}
                   type="email"
                   value={form.email}
                   onChange={(v) => set("email", v)}
                   error={errors.email}
                 />
-                <Field
-                  id="phone"
+                <TextField
                   label={t("account.phone")}
                   type="tel"
                   value={form.phone}
                   onChange={(v) => set("phone", v)}
                 />
-                <Field
-                  id="age"
+                <TextField
                   label={t("account.age")}
                   inputMode="numeric"
                   value={form.age}
                   onChange={(v) => set("age", v)}
                   error={errors.age}
                 />
-                <div>
-                  <label
-                    htmlFor="sex"
-                    className="mb-1 block text-xs font-semibold uppercase tracking-wide text-slate-500"
-                  >
-                    {t("account.sex")}
-                  </label>
-                  <select
-                    id="sex"
-                    value={form.sex}
-                    onChange={(e) => set("sex", e.target.value)}
-                    className="w-full rounded-lg border border-slate-200 bg-slate-50 px-3 py-2.5 text-sm outline-none focus:border-indigo-500 focus:bg-white"
-                  >
-                    <option value="">{t("common.none")}</option>
-                    {SEXES.map((value) => (
-                      <option key={value} value={value}>
-                        {t(`account.${value}`)}
-                      </option>
-                    ))}
-                  </select>
-                </div>
+                <SelectField
+                  label={t("account.sex")}
+                  value={form.sex}
+                  onChange={(v) => set("sex", v)}
+                  placeholder={t("common.none")}
+                  options={SEXES.map((value) => ({
+                    value,
+                    label: t(`account.${value}`),
+                  }))}
+                />
               </div>
 
               <div className="flex items-center gap-3">
@@ -174,76 +191,5 @@ export function ProfileForm() {
         </Card>
       </div>
     </>
-  );
-}
-
-function ReadOnly({
-  label,
-  value,
-  ltr = false,
-}: {
-  label: string;
-  value: string;
-  ltr?: boolean;
-}) {
-  return (
-    <div>
-      <dt className="text-xs font-semibold uppercase tracking-wide text-slate-500">
-        {label}
-      </dt>
-      <dd
-        className={`mt-1 font-medium text-slate-900 ${ltr ? "force-ltr" : ""}`}
-      >
-        {value}
-      </dd>
-    </div>
-  );
-}
-
-function Field({
-  id,
-  label,
-  value,
-  onChange,
-  type = "text",
-  inputMode,
-  error,
-}: {
-  id: string;
-  label: string;
-  value: string;
-  onChange: (value: string) => void;
-  type?: string;
-  inputMode?: "numeric" | "text";
-  error?: string;
-}) {
-  return (
-    <div>
-      <label
-        htmlFor={id}
-        className="mb-1 block text-xs font-semibold uppercase tracking-wide text-slate-500"
-      >
-        {label}
-      </label>
-      <input
-        id={id}
-        type={type}
-        inputMode={inputMode}
-        value={value}
-        onChange={(e) => onChange(e.target.value)}
-        aria-invalid={Boolean(error)}
-        aria-describedby={error ? `${id}-error` : undefined}
-        className={`w-full rounded-lg border bg-slate-50 px-3 py-2.5 text-sm outline-none focus:bg-white ${
-          error
-            ? "border-rose-300 focus:border-rose-500"
-            : "border-slate-200 focus:border-indigo-500"
-        }`}
-      />
-      {error && (
-        <p id={`${id}-error`} className="mt-1 text-xs text-rose-600">
-          {error}
-        </p>
-      )}
-    </div>
   );
 }

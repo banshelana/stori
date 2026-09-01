@@ -36,7 +36,24 @@
     "amount": "Amount",
     "name": "Name",
     "of": "of",
-    "showing": "Showing"
+    "showing": "Showing",
+    "saveChanges": "Save changes",
+    "saved": "Saved",
+    "created": "Created",
+    "deleted": "Deleted",
+    "customer": "Customer",
+    "product": "Product",
+    "approve": "Approve",
+    "unapprove": "Unapprove",
+    "markHandled": "Mark as handled",
+    "markUnhandled": "Mark as not handled",
+    "view": "View details",
+    "unknown": "Unknown",
+    "active": "Active",
+    "disabled": "Disabled",
+    "enable": "Enable",
+    "disable": "Disable",
+    "activeLabel": "Active (visible in the store)"
   },
   "nav": {
     "home": "Home",
@@ -72,7 +89,8 @@
     "demoAccounts": "Demo accounts",
     "unauthorizedTitle": "You don't have access to this page",
     "unauthorizedBody": "Your account doesn't carry the permission required to view this section.",
-    "signInRequired": "Please sign in to continue."
+    "signInRequired": "Please sign in to continue.",
+    "accountDisabled": "This account has been disabled. Please contact support."
   },
   "roles": {
     "admin": "Admin",
@@ -101,7 +119,36 @@
     "topProducts": "Top products",
     "vsLastMonth": "vs. last month",
     "ordersByStatus": "Orders by status",
-    "comingSoon": "This section's create, edit, delete and filter screens arrive in the next phase. The route, menu entry and permission check are already live."
+    "comingSoon": "This section's create, edit, delete and filter screens arrive in the next phase. The route, menu entry and permission check are already live.",
+    "newCustomer": "New customer",
+    "editCustomer": "Edit customer",
+    "deleteCustomer": "Delete this customer?",
+    "searchCustomers": "Search by name, mobile or email",
+    "newProduct": "New product",
+    "editProduct": "Edit product",
+    "deleteProduct": "Delete this product?",
+    "searchProducts": "Search by title, slug or tag",
+    "editOrder": "Edit order",
+    "deleteOrder": "Delete this order?",
+    "searchOrders": "Search by reference or product",
+    "editPayment": "Edit payment",
+    "deletePayment": "Delete this payment?",
+    "searchPayments": "Search by reference",
+    "editReview": "Edit review",
+    "deleteReview": "Delete this review?",
+    "searchReviews": "Search review text",
+    "newReview": "New review",
+    "editContact": "Edit contact",
+    "deleteContact": "Delete this message?",
+    "searchContacts": "Search by name, subject or email",
+    "newMessage": "Send SMS",
+    "editMessage": "Edit message",
+    "deleteMessage": "Delete this SMS?",
+    "searchMessages": "Search by recipient or text",
+    "orderLines": "Order lines",
+    "subRole": "Access level",
+    "initialPassword": "Initial password",
+    "initialPasswordHint": "The customer can change this after signing in."
   },
   "account": {
     "title": "My account",
@@ -198,7 +245,21 @@
       "price-desc": "Price: high to low",
       "name-asc": "Name A–Z",
       "rating-desc": "Top rated"
-    }
+    },
+    "slug": "Slug",
+    "slugHint": "Used in the product URL. Lowercase, dashes only.",
+    "price": "Price",
+    "compareAtPrice": "Compare-at price",
+    "compareAtPriceHint": "Leave empty when the product is not on sale.",
+    "currency": "Currency",
+    "stockLabel": "Stock",
+    "image": "Image path",
+    "tags": "Tags",
+    "tagsHint": "Comma separated.",
+    "featured": "Show in featured",
+    "ratingLabel": "Rating",
+    "priceHint": "In minor units (cents).",
+    "description": "Description"
   },
   "cart": {
     "title": "Your cart",
@@ -244,5 +305,46 @@
     "shopByCategory": "Shop by category",
     "featured": "Featured",
     "viewAll": "View all"
+  },
+  "review": {
+    "body": "Review",
+    "approved": "Approved",
+    "pending": "Awaiting approval",
+    "rating": "Rating"
+  },
+  "contact": {
+    "subject": "Subject",
+    "body": "Message",
+    "handled": "Handled",
+    "open": "Open"
+  },
+  "sms": {
+    "recipient": "Recipient",
+    "body": "Message text",
+    "bodyHint": "{count} of 160 characters.",
+    "status": {
+      "sent": "Sent",
+      "queued": "Queued",
+      "failed": "Failed"
+    },
+    "send": "Send"
+  },
+  "upload": {
+    "images": "Images",
+    "choose": "Choose image",
+    "replace": "Replace",
+    "remove": "Remove",
+    "primary": "Default",
+    "makePrimary": "Set as default",
+    "currentImage": "Current image",
+    "dropHint": "Drop or click to add",
+    "avatarHint": "JPEG, PNG, WebP or GIF. Resized to 256px on your device.",
+    "productHint": "The default image is what the store shows in listings. JPEG, PNG, WebP or GIF, up to 8 MB each.",
+    "tooMany": "You can add at most {max} images.",
+    "error": {
+      "TYPE": "That file type is not supported.",
+      "SIZE": "That file is too large.",
+      "DECODE": "That image could not be read."
+    }
   }
 }

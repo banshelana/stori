@@ -90,3 +90,22 @@ export const ACCOUNT_NAV: NavItem[] = [
     permission: "account.view",
   },
 ];
+
+/**
+ * Permission guarding a given app path, or undefined when the path is
+ * public. Used to check a post-login redirect target before following it:
+ * the person signing in is not necessarily the one who was bounced.
+ */
+export function permissionForPath(path: string): Permission | undefined {
+  const all = [...ADMIN_NAV, ...ACCOUNT_NAV];
+  // Longest match first, so /admin/payments beats /admin.
+  const match = all
+    .filter((item) => path === item.href || path.startsWith(`${item.href}/`))
+    .sort((a, b) => b.href.length - a.href.length)[0];
+
+  if (match) return match.permission;
+  // Section roots with no nav entry of their own still need guarding.
+  if (path === "/account" || path.startsWith("/account/")) return "account.view";
+  if (path === "/admin" || path.startsWith("/admin/")) return "dashboard.view";
+  return undefined;
+}

@@ -1,7 +1,10 @@
-import { SectionPlaceholder } from "@/components/admin/SectionPlaceholder";
+import { MessagesSection } from "@/components/admin/MessagesSection";
+import { Guard } from "@/lib/auth/Guard";
 
 export default function Page() {
   return (
-    <SectionPlaceholder permission="messages.view" titleKey="admin.messages" />
+    <Guard permission="messages.view">
+      <MessagesSection />
+    </Guard>
   );
 }

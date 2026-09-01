@@ -1,5 +1,6 @@
 "use client";
 
+import { useState } from "react";
 import Link from "next/link";
 import { AddToCartButton } from "@/components/AddToCartButton";
 import { Price } from "@/components/Price";
@@ -9,6 +10,8 @@ import { localized } from "@/i18n/localized";
 import { useLocaleHref } from "@/i18n/navigation";
 import { formatNumber } from "@/lib/format";
 import { useProductBySlug } from "@/lib/hooks";
+import { orderedImages, PLACEHOLDER_IMAGE } from "@/lib/product";
+import type { ProductImage } from "@/lib/types";
 
 export function ProductDetail({ slug }: { slug: string }) {
   const { data: product, loading, error } = useProductBySlug(slug);
@@ -57,14 +60,10 @@ export function ProductDetail({ slug }: { slug: string }) {
       </nav>
 
       <div className="grid gap-8 md:grid-cols-2">
-        <div className="overflow-hidden rounded-2xl border border-slate-200 bg-slate-100">
-          {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img
-            src={product.image}
-            alt={localized(product.title, locale)}
-            className="h-full w-full object-cover"
-          />
-        </div>
+        <ProductGallery
+          images={orderedImages(product)}
+          alt={localized(product.title, locale)}
+        />
 
         <div className="flex flex-col">
           <Rating value={product.rating} />
@@ -103,5 +102,56 @@ export function ProductDetail({ slug }: { slug: string }) {
         </div>
       </div>
     </main>
+  );
+}
+
+/**
+ * Primary image plus thumbnails. The gallery arrives already ordered with
+ * the admin's chosen primary first, so this component never decides which
+ * image leads.
+ */
+function ProductGallery({
+  images,
+  alt,
+}: {
+  images: ProductImage[];
+  alt: string;
+}) {
+  const [activeId, setActiveId] = useState(images[0]?.id);
+  const active = images.find((img) => img.id === activeId) ?? images[0];
+
+  return (
+    <div>
+      <div className="overflow-hidden rounded-2xl border border-slate-200 bg-slate-100">
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img
+          src={active?.src ?? PLACEHOLDER_IMAGE}
+          alt={alt}
+          className="aspect-[4/3] h-full w-full object-cover"
+        />
+      </div>
+
+      {images.length > 1 && (
+        <div className="mt-3 flex gap-2 overflow-x-auto pb-1">
+          {images.map((img) => (
+            <button
+              key={img.id}
+              type="button"
+              onClick={() => setActiveId(img.id)}
+              aria-label={alt}
+              aria-current={img.id === active?.id}
+              className={`h-16 w-20 shrink-0 overflow-hidden rounded-lg border-2 transition-colors ${
+                img.id === active?.id
+                  ? "border-indigo-500"
+                  : "border-slate-200 hover:border-slate-300"
+              }`}
+            >
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img src={img.src} alt="" className="h-full w-full object-cover" />
+            </button>
+          ))}
+        </div>
+      )}
+    </div>
   );
 }

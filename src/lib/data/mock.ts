@@ -22,7 +22,9 @@ export const MOCK_PRODUCTS: Product[] = [
     price: 19900,
     compareAtPrice: 24900,
     currency: "EUR",
-    image: "/images/headphones.svg",
+    images: [{ id: "img-headphones", src: "/images/headphones.svg" }],
+    primaryImageId: "img-headphones",
+    active: true,
     categoryId: "cat-1",
     tags: ["audio", "bluetooth", "noise-cancelling"],
     rating: 4.7,
@@ -41,7 +43,9 @@ export const MOCK_PRODUCTS: Product[] = [
     price: 12900,
     compareAtPrice: null,
     currency: "EUR",
-    image: "/images/earbuds.svg",
+    images: [{ id: "img-earbuds", src: "/images/earbuds.svg" }],
+    primaryImageId: "img-earbuds",
+    active: true,
     categoryId: "cat-1",
     tags: ["audio", "bluetooth", "wireless"],
     rating: 4.4,
@@ -60,7 +64,9 @@ export const MOCK_PRODUCTS: Product[] = [
     price: 24900,
     compareAtPrice: 27900,
     currency: "EUR",
-    image: "/images/smartwatch.svg",
+    images: [{ id: "img-smartwatch", src: "/images/smartwatch.svg" }],
+    primaryImageId: "img-smartwatch",
+    active: true,
     categoryId: "cat-2",
     tags: ["wearable", "fitness", "gps"],
     rating: 4.5,
@@ -79,7 +85,9 @@ export const MOCK_PRODUCTS: Product[] = [
     price: 7900,
     compareAtPrice: null,
     currency: "EUR",
-    image: "/images/fitness-band.svg",
+    images: [{ id: "img-fitness-band", src: "/images/fitness-band.svg" }],
+    primaryImageId: "img-fitness-band",
+    active: true,
     categoryId: "cat-2",
     tags: ["wearable", "fitness"],
     rating: 4.2,
@@ -98,7 +106,9 @@ export const MOCK_PRODUCTS: Product[] = [
     price: 13900,
     compareAtPrice: null,
     currency: "EUR",
-    image: "/images/keyboard.svg",
+    images: [{ id: "img-keyboard", src: "/images/keyboard.svg" }],
+    primaryImageId: "img-keyboard",
+    active: true,
     categoryId: "cat-3",
     tags: ["desk", "keyboard", "mechanical"],
     rating: 4.9,
@@ -117,7 +127,9 @@ export const MOCK_PRODUCTS: Product[] = [
     price: 8990,
     compareAtPrice: 10900,
     currency: "EUR",
-    image: "/images/speaker.svg",
+    images: [{ id: "img-speaker", src: "/images/speaker.svg" }],
+    primaryImageId: "img-speaker",
+    active: true,
     categoryId: "cat-3",
     tags: ["desk", "audio"],
     rating: 4.3,
@@ -136,7 +148,9 @@ export const MOCK_PRODUCTS: Product[] = [
     price: 6490,
     compareAtPrice: null,
     currency: "EUR",
-    image: "/images/lamp.svg",
+    images: [{ id: "img-lamp", src: "/images/lamp.svg" }],
+    primaryImageId: "img-lamp",
+    active: true,
     categoryId: "cat-4",
     tags: ["home", "lighting"],
     rating: 4.6,
@@ -155,7 +169,9 @@ export const MOCK_PRODUCTS: Product[] = [
     price: 1900,
     compareAtPrice: null,
     currency: "EUR",
-    image: "/images/mug.svg",
+    images: [{ id: "img-mug", src: "/images/mug.svg" }],
+    primaryImageId: "img-mug",
+    active: true,
     categoryId: "cat-4",
     tags: ["home", "kitchen"],
     rating: 4.8,
@@ -175,7 +191,9 @@ export async function mockList(
   locale: Locale = DEFAULT_LOCALE
 ): Promise<Product[]> {
   await delay();
-  let items = [...MOCK_PRODUCTS];
+  // The storefront never sees a deactivated product; the admin reads
+  // MOCK_PRODUCTS through its own repository instead.
+  let items = MOCK_PRODUCTS.filter((p) => p.active);
 
   const q = filters.q?.trim().toLowerCase();
   if (q) {
@@ -240,11 +258,13 @@ export async function mockList(
 
 export async function mockGetBySlug(slug: string): Promise<Product | undefined> {
   await delay(150);
-  return MOCK_PRODUCTS.find((p) => p.slug === slug);
+  return MOCK_PRODUCTS.find((p) => p.slug === slug && p.active);
 }
 
 export async function mockGetById(id: string): Promise<Product | undefined> {
   await delay(120);
+  // Deliberately ignores `active`: a cart holding a product that was just
+  // deactivated should still resolve so the line can be priced and shown.
   return MOCK_PRODUCTS.find((p) => p.id === id);
 }
 
@@ -255,5 +275,5 @@ export async function mockCategories(): Promise<Category[]> {
 
 export async function mockFeatured(limit = 4): Promise<Product[]> {
   await delay(120);
-  return MOCK_PRODUCTS.filter((p) => p.featured).slice(0, limit);
+  return MOCK_PRODUCTS.filter((p) => p.featured && p.active).slice(0, limit);
 }

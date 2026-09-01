@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import { TextField } from "@/components/form/Field";
 import { useI18n } from "@/i18n/I18nProvider";
 import { localized } from "@/i18n/localized";
 import { useLocaleHref } from "@/i18n/navigation";
@@ -16,6 +17,14 @@ export function CheckoutView() {
   const { lines, subtotal, currency, loading } = useCartLines();
   const { t, locale } = useI18n();
   const [placed, setPlaced] = useState(false);
+  // Controlled, so the values survive a re-render and are available
+  // to the order payload once a real API is wired in.
+  const [contact, setContact] = useState({
+    firstName: "",
+    lastName: "",
+    email: "",
+    mobile: "",
+  });
 
   function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -76,20 +85,32 @@ export function CheckoutView() {
           {t("checkout.contactDetails")}
         </h2>
         <div className="grid gap-4 sm:grid-cols-2">
-          <Field label={t("auth.firstName")} name="firstName" required />
-          <Field label={t("auth.lastName")} name="lastName" required />
-          <Field
-            label={t("account.email")}
-            name="email"
-            type="email"
-            className="sm:col-span-2"
+          <TextField
+            label={t("auth.firstName")}
+            required
+            value={contact.firstName}
+            onChange={(v) => setContact((c) => ({ ...c, firstName: v }))}
           />
-          <Field
+          <TextField
+            label={t("auth.lastName")}
+            required
+            value={contact.lastName}
+            onChange={(v) => setContact((c) => ({ ...c, lastName: v }))}
+          />
+          <TextField
+            className="sm:col-span-2"
+            label={t("account.email")}
+            type="email"
+            value={contact.email}
+            onChange={(v) => setContact((c) => ({ ...c, email: v }))}
+          />
+          <TextField
+            className="sm:col-span-2"
             label={t("auth.mobile")}
-            name="mobile"
             type="tel"
             required
-            className="sm:col-span-2"
+            value={contact.mobile}
+            onChange={(v) => setContact((c) => ({ ...c, mobile: v }))}
           />
         </div>
 
@@ -124,33 +145,5 @@ export function CheckoutView() {
         </button>
       </aside>
     </form>
-  );
-}
-
-function Field({
-  label,
-  name,
-  type = "text",
-  required = false,
-  className = "",
-}: {
-  label: string;
-  name: string;
-  type?: string;
-  required?: boolean;
-  className?: string;
-}) {
-  return (
-    <label className={`block ${className}`}>
-      <span className="mb-1 block text-xs font-semibold uppercase tracking-wide text-slate-500">
-        {label}
-      </span>
-      <input
-        name={name}
-        type={type}
-        required={required}
-        className="w-full rounded-lg border border-slate-200 bg-slate-50 px-3 py-2.5 text-sm outline-none focus:border-indigo-500 focus:bg-white"
-      />
-    </label>
   );
 }

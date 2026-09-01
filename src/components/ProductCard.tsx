@@ -7,6 +7,7 @@ import { Rating } from "@/components/Rating";
 import { useI18n } from "@/i18n/I18nProvider";
 import { localized } from "@/i18n/localized";
 import { useLocaleHref } from "@/i18n/navigation";
+import { primaryImageSrc } from "@/lib/product";
 import type { Product } from "@/lib/types";
 
 export function ProductCard({ product }: { product: Product }) {
@@ -21,7 +22,7 @@ export function ProductCard({ product }: { product: Product }) {
       >
         {/* eslint-disable-next-line @next/next/no-img-element */}
         <img
-          src={product.image}
+          src={primaryImageSrc(product)}
           alt={localized(product.title, locale)}
           className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-105"
           loading="lazy"

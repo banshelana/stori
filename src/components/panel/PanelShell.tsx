@@ -4,6 +4,7 @@ import { useState } from "react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { Icon } from "@/components/panel/Icon";
+import { Avatar } from "@/components/Avatar";
 import { LocaleSwitcher } from "@/components/LocaleSwitcher";
 import { useI18n } from "@/i18n/I18nProvider";
 import { localePath, stripLocale } from "@/i18n/paths";
@@ -43,7 +44,7 @@ export function PanelShell({
   }
 
   const sidebar = (
-    <nav className="flex h-full flex-col gap-1 p-3">
+    <nav className="flex min-h-0 flex-1 flex-col gap-1 overflow-y-auto p-3">
       {visible.map((item) => {
         const active = isActive(item.href);
         return (
@@ -90,8 +91,8 @@ export function PanelShell({
   return (
     <div className="flex min-h-screen bg-slate-50">
       {/* Desktop sidebar. `border-e` flips to the correct edge in RTL. */}
-      <aside className="sticky top-0 hidden h-screen w-64 shrink-0 border-e border-slate-200 bg-white lg:block">
-        <div className="flex h-16 items-center gap-2 border-b border-slate-200 px-5">
+      <aside className="sticky top-0 hidden h-screen w-64 shrink-0 flex-col border-e border-slate-200 bg-white lg:flex">
+        <div className="flex h-16 shrink-0 items-center gap-2 border-b border-slate-200 px-5">
           <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-indigo-600 text-sm font-bold text-white">
             {t("common.appName").charAt(0)}
           </span>
@@ -110,7 +111,7 @@ export function PanelShell({
             className="absolute inset-0 bg-slate-900/40"
           />
           <aside className="absolute inset-y-0 start-0 flex w-72 flex-col bg-white shadow-xl">
-            <div className="flex h-16 items-center justify-between border-b border-slate-200 px-5">
+            <div className="flex h-16 shrink-0 items-center justify-between border-b border-slate-200 px-5">
               <span className="font-bold text-slate-900">{t(titleKey)}</span>
               <button type="button" onClick={() => setOpen(false)}>
                 <Icon name="close" />
@@ -146,12 +147,12 @@ export function PanelShell({
                     {t(`roles.${user.subRole}`)}
                   </p>
                 </div>
-                <span
-                  className="flex h-9 w-9 items-center justify-center rounded-lg text-xs font-bold text-white"
-                  style={{ backgroundColor: user.avatarColor ?? "#4f46e5" }}
-                >
-                  {`${user.firstName[0] ?? ""}${user.lastName[0] ?? ""}`.toUpperCase()}
-                </span>
+                <Avatar
+                  firstName={user.firstName}
+                  lastName={user.lastName}
+                  avatarUrl={user.avatarUrl}
+                  avatarColor={user.avatarColor}
+                />
               </div>
             )}
           </div>

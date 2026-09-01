@@ -1,7 +1,10 @@
-import { SectionPlaceholder } from "@/components/admin/SectionPlaceholder";
+import { ProductsSection } from "@/components/admin/ProductsSection";
+import { Guard } from "@/lib/auth/Guard";
 
 export default function Page() {
   return (
-    <SectionPlaceholder permission="products.view" titleKey="admin.products" />
+    <Guard permission="products.view">
+      <ProductsSection />
+    </Guard>
   );
 }

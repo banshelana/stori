@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useI18n } from "@/i18n/I18nProvider";
 import { useLocaleHref } from "@/i18n/navigation";
+import { Avatar } from "@/components/Avatar";
 import { useAuth } from "@/lib/auth/auth-context";
 import { homePathFor } from "@/lib/auth/permissions";
 
@@ -55,8 +56,6 @@ export function UserMenu() {
     );
   }
 
-  const initials = `${user.firstName[0] ?? ""}${user.lastName[0] ?? ""}`.toUpperCase();
-
   return (
     <div className="relative" ref={containerRef}>
       <button
@@ -69,12 +68,13 @@ export function UserMenu() {
         <span className="hidden max-w-28 truncate font-medium text-slate-700 sm:inline">
           {user.firstName}
         </span>
-        <span
-          className="flex h-8 w-8 items-center justify-center rounded-md text-xs font-bold text-white"
-          style={{ backgroundColor: user.avatarColor ?? "#4f46e5" }}
-        >
-          {initials}
-        </span>
+        <Avatar
+          firstName={user.firstName}
+          lastName={user.lastName}
+          avatarUrl={user.avatarUrl}
+          avatarColor={user.avatarColor}
+          size="sm"
+        />
       </button>
 
       {open && (

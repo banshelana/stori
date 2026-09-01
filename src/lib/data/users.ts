@@ -27,6 +27,7 @@ export const MOCK_USERS: MockUser[] = [
     sex: "female",
     createdAt: "2025-03-11",
     avatarColor: "#4f46e5",
+    active: true,
     addresses: [
       {
         id: "a-001",
@@ -56,6 +57,7 @@ export const MOCK_USERS: MockUser[] = [
     sex: "male",
     createdAt: "2025-05-02",
     avatarColor: "#0891b2",
+    active: true,
   },
   {
     id: "u-003",
@@ -70,6 +72,7 @@ export const MOCK_USERS: MockUser[] = [
     sex: "female",
     createdAt: "2025-08-19",
     avatarColor: "#7c3aed",
+    active: true,
   },
   {
     id: "u-004",
@@ -81,6 +84,7 @@ export const MOCK_USERS: MockUser[] = [
     subRole: "regular",
     createdAt: "2026-01-08",
     avatarColor: "#059669",
+    active: true,
     // Deliberately has no details yet — exercises the "complete your
     // profile" path a freshly registered user sees.
   },
@@ -98,6 +102,7 @@ export const MOCK_USERS: MockUser[] = [
     sex: "female",
     createdAt: "2025-06-14",
     avatarColor: "#e11d48",
+    active: true,
     addresses: [
       {
         id: "a-002",
@@ -145,6 +150,8 @@ export async function mockLogin({ mobile, password }: LoginInput): Promise<User>
     (u) => normalizeMobile(u.mobile) === target && u.password === password
   );
   if (!found) throw new Error("INVALID_CREDENTIALS");
+  // A disabled account keeps its history but is refused at the door.
+  if (!found.active) throw new Error("ACCOUNT_DISABLED");
   return strip(found);
 }
 
@@ -167,6 +174,7 @@ export async function mockRegister(input: RegisterInput): Promise<User> {
     subRole: "regular",
     createdAt: new Date().toISOString().slice(0, 10),
     avatarColor: "#0ea5e9",
+    active: true,
   };
 
   MOCK_USERS.push(created);
@@ -181,8 +189,8 @@ export async function mockUpdateProfile(
   const index = MOCK_USERS.findIndex((u) => u.id === id);
   if (index === -1) throw new Error("USER_NOT_FOUND");
 
-  // role/subRole are never self-editable from the profile form.
-  const { role: _r, subRole: _s, id: _i, ...safe } = patch;
+  // role, subRole and active are never self-editable from the profile form.
+  const { role: _r, subRole: _s, id: _i, active: _a, ...safe } = patch;
   MOCK_USERS[index] = { ...MOCK_USERS[index], ...safe };
   return strip(MOCK_USERS[index]);
 }

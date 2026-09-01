@@ -20,6 +20,13 @@ const ICONS: Record<string, string> = {
   close: "M18 6 6 18M6 6l12 12",
   trendUp: "M23 6l-9.5 9.5-5-5L1 18M17 6h6v6",
   trendDown: "M23 18l-9.5-9.5-5 5L1 6M17 18h6v-6",
+  search: "M11 19a8 8 0 1 0 0-16 8 8 0 0 0 0 16zM21 21l-4.35-4.35",
+  check: "M20 6 9 17l-5-5",
+  send: "M22 2 11 13M22 2l-7 20-4-9-9-4z",
+  eye: "M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8zM12 15a3 3 0 1 0 0-6 3 3 0 0 0 0 6z",
+  upload: "M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M17 8l-5-5-5 5M12 3v12",
+  power: "M18.36 6.64a9 9 0 1 1-12.73 0M12 2v10",
+  image: "M3 3h18v18H3zM8.5 10a1.5 1.5 0 1 0 0-3 1.5 1.5 0 0 0 0 3zM21 15l-5-5L5 21",
 };
 
 export function Icon({

@@ -8,6 +8,13 @@ export interface Category {
   slug: string;
 }
 
+/** One uploaded or bundled image belonging to a product. */
+export interface ProductImage {
+  id: string;
+  /** A public path (bundled asset) or a data URL (uploaded). */
+  src: string;
+}
+
 export interface Product {
   id: string;
   slug: string;
@@ -16,7 +23,15 @@ export interface Product {
   price: number; // in cents
   compareAtPrice?: number | null; // in cents, for showing a sale
   currency: string; // ISO-4217, e.g. "EUR"
-  image: string;
+  images: ProductImage[];
+  /**
+   * Which image the storefront shows in listings and first on the product
+   * page. Held by id, not index, so deleting or reordering the gallery
+   * cannot silently promote a different image.
+   */
+  primaryImageId: string | null;
+  /** Inactive products stay in the admin but disappear from the storefront. */
+  active: boolean;
   categoryId: string;
   tags: string[];
   rating: number; // 0..5

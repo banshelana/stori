@@ -7,6 +7,7 @@ import { useLocaleHref } from "@/i18n/navigation";
 import { useCart } from "@/lib/cart-context";
 import { formatNumber, formatPrice } from "@/lib/format";
 import { useCartLines } from "@/lib/hooks";
+import { primaryImageSrc } from "@/lib/product";
 
 export function CartView() {
   const { items, setQuantity, removeItem, clear, count, hydrated } = useCart();
@@ -79,7 +80,7 @@ export function CartView() {
               <div className="h-20 w-24 shrink-0 overflow-hidden rounded-lg bg-slate-100">
                 {/* eslint-disable-next-line @next/next/no-img-element */}
                 <img
-                  src={product.image}
+                  src={primaryImageSrc(product)}
                   alt={localized(product.title, locale)}
                   className="h-full w-full object-cover"
                 />

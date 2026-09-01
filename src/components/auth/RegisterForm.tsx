@@ -3,10 +3,12 @@
 import { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
+import { TextField } from "@/components/form/Field";
 import { useI18n } from "@/i18n/I18nProvider";
 import { localePath } from "@/i18n/paths";
 import { useAuth } from "@/lib/auth/auth-context";
 import { homePathFor } from "@/lib/auth/permissions";
+import { useFormErrors } from "@/lib/useFormErrors";
 import {
   normalizeMobile,
   validateMinLength,
@@ -31,10 +33,15 @@ export function RegisterForm() {
     password: "",
   });
   const [error, setError] = useState<string | null>(null);
-  const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
+  const {
+    errors: fieldErrors,
+    setErrors: setFieldErrors,
+    clear,
+  } = useFormErrors();
 
   function set(key: keyof typeof form, value: string) {
     setForm((prev) => ({ ...prev, [key]: value }));
+    clear(key);
   }
 
   async function handleSubmit(e: React.FormEvent) {
@@ -81,16 +88,14 @@ export function RegisterForm() {
 
       <form onSubmit={handleSubmit} className="mt-6 space-y-4" noValidate>
         <div className="grid gap-4 sm:grid-cols-2">
-          <Field
-            id="firstName"
+          <TextField
             label={t("auth.firstName")}
             value={form.firstName}
             onChange={(v) => set("firstName", v)}
             error={fieldErrors.firstName}
             autoComplete="given-name"
           />
-          <Field
-            id="lastName"
+          <TextField
             label={t("auth.lastName")}
             value={form.lastName}
             onChange={(v) => set("lastName", v)}
@@ -99,8 +104,7 @@ export function RegisterForm() {
           />
         </div>
 
-        <Field
-          id="mobile"
+        <TextField
           label={t("auth.mobile")}
           type="tel"
           value={form.mobile}
@@ -111,8 +115,7 @@ export function RegisterForm() {
           placeholder="09xxxxxxxxx"
         />
 
-        <Field
-          id="password"
+        <TextField
           label={t("auth.password")}
           type="password"
           value={form.password}
@@ -148,63 +151,6 @@ export function RegisterForm() {
           {t("auth.signInHere")}
         </Link>
       </p>
-    </div>
-  );
-}
-
-function Field({
-  id,
-  label,
-  value,
-  onChange,
-  type = "text",
-  error,
-  hint,
-  autoComplete,
-  placeholder,
-}: {
-  id: string;
-  label: string;
-  value: string;
-  onChange: (value: string) => void;
-  type?: string;
-  error?: string;
-  hint?: string;
-  autoComplete?: string;
-  placeholder?: string;
-}) {
-  return (
-    <div>
-      <label
-        htmlFor={id}
-        className="mb-1 block text-xs font-semibold uppercase tracking-wide text-slate-500"
-      >
-        {label}
-      </label>
-      <input
-        id={id}
-        type={type}
-        value={value}
-        onChange={(e) => onChange(e.target.value)}
-        autoComplete={autoComplete}
-        placeholder={placeholder}
-        aria-invalid={Boolean(error)}
-        aria-describedby={error ? `${id}-error` : hint ? `${id}-hint` : undefined}
-        className={`w-full rounded-lg border bg-slate-50 px-3 py-2.5 text-sm outline-none focus:bg-white ${
-          error
-            ? "border-rose-300 focus:border-rose-500"
-            : "border-slate-200 focus:border-indigo-500"
-        }`}
-      />
-      {error ? (
-        <p id={`${id}-error`} className="mt-1 text-xs text-rose-600">
-          {error}
-        </p>
-      ) : hint ? (
-        <p id={`${id}-hint`} className="mt-1 text-xs text-slate-400">
-          {hint}
-        </p>
-      ) : null}
     </div>
   );
 }

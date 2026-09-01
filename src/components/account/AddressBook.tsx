@@ -2,6 +2,12 @@
 
 import { useState } from "react";
 import { Icon } from "@/components/panel/Icon";
+import {
+  CheckboxField,
+  SelectField,
+  TextField,
+} from "@/components/form/Field";
+import { useFormErrors } from "@/lib/useFormErrors";
 import { Badge, Card, EmptyState, PageHeader } from "@/components/panel/ui";
 import { useI18n } from "@/i18n/I18nProvider";
 import { useAuth } from "@/lib/auth/auth-context";
@@ -184,13 +190,14 @@ function AddressForm({
 }) {
   const { t, locale } = useI18n();
   const [form, setForm] = useState(initial);
-  const [errors, setErrors] = useState<Record<string, string>>({});
+  const { errors, setErrors, clear } = useFormErrors();
 
   const provinces = provincesOf(form.countryId);
   const cities = citiesOf(form.provinceId);
 
   function set(patch: Partial<UserAddress>) {
     setForm((prev) => ({ ...prev, ...patch }));
+    Object.keys(patch).forEach(clear);
   }
 
   function handleSubmit(e: React.FormEvent) {
@@ -220,8 +227,7 @@ function AddressForm({
       <h2 className="font-bold text-slate-900">{t("address.title")}</h2>
 
       <div className="grid gap-4 sm:grid-cols-3">
-        <Select
-          id="country"
+        <SelectField
           label={t("address.country")}
           value={form.countryId}
           placeholder={t("address.selectCountry")}
@@ -232,8 +238,7 @@ function AddressForm({
           }))}
           onChange={(v) => set({ countryId: v, provinceId: "", cityId: "" })}
         />
-        <Select
-          id="province"
+        <SelectField
           label={t("address.province")}
           value={form.provinceId}
           placeholder={
@@ -249,8 +254,7 @@ function AddressForm({
           }))}
           onChange={(v) => set({ provinceId: v, cityId: "" })}
         />
-        <Select
-          id="city"
+        <SelectField
           label={t("address.city")}
           value={form.cityId}
           placeholder={
@@ -269,15 +273,13 @@ function AddressForm({
       </div>
 
       <div className="grid gap-4 sm:grid-cols-2">
-        <Input
-          id="street"
+        <TextField
           label={t("address.street")}
           value={form.street}
           onChange={(v) => set({ street: v })}
           error={errors.street}
         />
-        <Input
-          id="alley"
+        <TextField
           label={t("address.alley")}
           value={form.alley ?? ""}
           onChange={(v) => set({ alley: v })}
@@ -285,29 +287,25 @@ function AddressForm({
       </div>
 
       <div className="grid gap-4 sm:grid-cols-4">
-        <Input
-          id="buildingNo"
+        <TextField
           label={t("address.buildingNo")}
           value={form.buildingNo ?? ""}
           onChange={(v) => set({ buildingNo: v })}
           inputMode="numeric"
         />
-        <Input
-          id="floor"
+        <TextField
           label={t("address.floor")}
           value={form.floor ?? ""}
           onChange={(v) => set({ floor: v })}
           inputMode="numeric"
         />
-        <Input
-          id="unit"
+        <TextField
           label={t("address.unit")}
           value={form.unit ?? ""}
           onChange={(v) => set({ unit: v })}
           inputMode="numeric"
         />
-        <Input
-          id="postalCode"
+        <TextField
           label={t("address.postalCode")}
           value={form.postalCode}
           onChange={(v) => set({ postalCode: v })}
@@ -316,15 +314,11 @@ function AddressForm({
         />
       </div>
 
-      <label className="flex items-center gap-2 text-sm text-slate-700">
-        <input
-          type="checkbox"
-          checked={Boolean(form.isDefault)}
-          onChange={(e) => set({ isDefault: e.target.checked })}
-          className="h-4 w-4 rounded border-slate-300 text-indigo-600"
-        />
-        {t("address.setDefault")}
-      </label>
+      <CheckboxField
+        label={t("address.setDefault")}
+        checked={Boolean(form.isDefault)}
+        onChange={(v) => set({ isDefault: v })}
+      />
 
       <div className="flex gap-2">
         <button
@@ -343,96 +337,5 @@ function AddressForm({
         </button>
       </div>
     </form>
-  );
-}
-
-function Select({
-  id,
-  label,
-  value,
-  options,
-  onChange,
-  placeholder,
-  disabled = false,
-  error,
-}: {
-  id: string;
-  label: string;
-  value: string;
-  options: { value: string; label: string }[];
-  onChange: (value: string) => void;
-  placeholder: string;
-  disabled?: boolean;
-  error?: string;
-}) {
-  return (
-    <div>
-      <label
-        htmlFor={id}
-        className="mb-1 block text-xs font-semibold uppercase tracking-wide text-slate-500"
-      >
-        {label}
-      </label>
-      <select
-        id={id}
-        value={value}
-        disabled={disabled}
-        onChange={(e) => onChange(e.target.value)}
-        aria-invalid={Boolean(error)}
-        className={`w-full rounded-lg border bg-slate-50 px-3 py-2.5 text-sm outline-none focus:bg-white disabled:cursor-not-allowed disabled:opacity-60 ${
-          error
-            ? "border-rose-300 focus:border-rose-500"
-            : "border-slate-200 focus:border-indigo-500"
-        }`}
-      >
-        <option value="">{placeholder}</option>
-        {options.map((o) => (
-          <option key={o.value} value={o.value}>
-            {o.label}
-          </option>
-        ))}
-      </select>
-      {error && <p className="mt-1 text-xs text-rose-600">{error}</p>}
-    </div>
-  );
-}
-
-function Input({
-  id,
-  label,
-  value,
-  onChange,
-  error,
-  inputMode,
-}: {
-  id: string;
-  label: string;
-  value: string;
-  onChange: (value: string) => void;
-  error?: string;
-  inputMode?: "numeric" | "text";
-}) {
-  return (
-    <div>
-      <label
-        htmlFor={id}
-        className="mb-1 block text-xs font-semibold uppercase tracking-wide text-slate-500"
-      >
-        {label}
-      </label>
-      <input
-        id={id}
-        value={value}
-        inputMode={inputMode}
-        onChange={(e) => onChange(e.target.value)}
-        aria-invalid={Boolean(error)}
-        className={`w-full rounded-lg border bg-slate-50 px-3 py-2.5 text-sm outline-none focus:bg-white ${
-          error
-            ? "border-rose-300 focus:border-rose-500"
-            : "border-slate-200 focus:border-indigo-500"
-        }`}
-      />
-      {error && <p className="mt-1 text-xs text-rose-600">{error}</p>}
-    </div>
   );
 }

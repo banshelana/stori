@@ -184,8 +184,79 @@ Addresses use a strict **Country → Province → City** cascade from `geo.ts`: 
 
 ---
 
+## Admin CRUD
+
+All seven admin sections have working create / edit / delete / filter screens built on four shared pieces, so adding an eighth section is roughly 150 lines:
+
+| Piece | Role |
+| --- | --- |
+| `src/lib/data/repository.ts` | `createRepository<T>()` — search, exact-match filters, sort, paging, and CRUD over an in-memory array |
+| `src/lib/data/repositories.ts` | One repository per section, declaring what free-text search matches and which columns sort |
+| `src/lib/useResourceList.ts` | Owns search / filter / sort / page state, debounces typing, resets the page when the result set narrows, refetches after a mutation |
+| `src/components/panel/DataTable.tsx` | The table, sort headers, row actions, pagination |
+
+Forms use the shared primitives in `src/components/form/Field.tsx` (`TextField`, `TextAreaField`, `SelectField`, `CheckboxField`, `ReadOnlyField`) — each wires `aria-invalid` and `aria-describedby` itself — inside `Modal` / `ConfirmDialog` from `src/components/panel/Modal.tsx`, which handle Escape, focus trapping and focus restore. `src/lib/useFormErrors.ts` clears a field's error the moment it is edited.
+
+| Section | Operations | Write permission |
+| --- | --- | --- |
+| Customers | Create, edit, delete; filter by sub-role | `customers.write` |
+| Products | Create, edit, delete; filter by category; bilingual title/description with auto-slug | `products.write` |
+| Sales | Edit status, delete; filter by status; read-only order lines | `sales.write` |
+| Payments | Edit status and method, delete; filter by status and method | `payments.write` |
+| Reviews | Approve/unapprove, edit, delete; filter by approval | `reviews.write` |
+| Contacts | View, mark handled/unhandled, delete; filter by state | `contacts.write` |
+| SMS panel | Send, delete; filter by delivery status | `messages.send` |
+
+Read and write permissions are separate: a sub-role holding `payments.view` but not `payments.write` gets the table without the New button or the row actions. Sales falls back to a read-only view dialog rather than hiding the row action entirely.
+
+Mock mutations write to the module-level arrays, so edits survive client-side navigation and reset on a full reload.
+
+## Images
+
+There is no upload endpoint yet, so a picked file is decoded, **downscaled on a canvas in the browser**, and kept as a data URL. Downscaling is not cosmetic — the avatar is persisted into the localStorage session, and a raw phone photo would exhaust the origin quota by itself. A 2.2 MB PNG comes out as a 256x256 WebP of about 2 KB.
+
+| File | Role |
+| --- | --- |
+| `src/lib/image.ts` | `processImage(file, options)` — type/size validation, downscale, re-encode until it fits a byte budget |
+| `src/components/form/ImageUpload.tsx` | `AvatarUpload` (single, round) and `GalleryUpload` (multi, with primary selection and drag-and-drop) |
+| `src/lib/product.ts` | `primaryImage`, `primaryImageSrc`, `orderedImages` |
+| `src/components/Avatar.tsx` | Photo when present, coloured initials otherwise |
+
+Accepted: JPEG, PNG, WebP, GIF, up to 8 MB in. SVG is excluded — it cannot be meaningfully rasterised on a canvas. Output is WebP where the browser encodes it, PNG otherwise.
+
+### Product gallery
+
+A product holds `images: ProductImage[]` plus `primaryImageId`. **The primary is held by id, not index**, so deleting or reordering the gallery can never silently promote a different image; if the primary is deleted, the helpers fall back to the first remaining image, and `orderedImages` puts the primary first on the product page.
+
+The storefront shows the primary in listings, the cart and the admin table. The product page shows the full gallery with thumbnails. Products with no images at all fall back to `/images/placeholder.svg`.
+
+Up to 6 images per product. Change `max` on `GalleryUpload` to adjust.
+
+### Profile photo
+
+`/account/profile` has an avatar picker; the photo counts toward the profile-completion meter and appears in the header, the sidebar and the admin customers table.
+
+> Profile edits write to both the mock user array and the localStorage session. On a full reload the array resets but the session does not, so a customer keeps seeing their own photo while the admin table shows initials again. That split disappears once a real API owns the data.
+
+### Swapping in a real upload
+
+`processImage` stays as-is — it is the client-side resize you want regardless. Only the storage changes: instead of keeping the data URL, `POST` the canvas output as a Blob and store the returned URL in `ProductImage.src` / `User.avatarUrl`.
+
+---
+
+## Enable / disable
+
+Products and customers both carry an `active` flag that admins toggle from the row actions (the power icon), with a status column and a status filter in each table.
+
+- **Inactive product** — hidden from the storefront catalog, search, featured list and product page. `getProductById` deliberately still resolves it, so a cart line for a just-deactivated product can still be priced and shown rather than vanishing.
+- **Disabled customer** — keeps all their data but is refused at sign-in with a distinct message, not the generic "wrong credentials".
+
+`active` is not self-editable: `mockUpdateProfile` strips `role`, `subRole`, `id` and `active` from any patch coming out of the profile form.
+
+---
+
 ## Current status
 
-**Working:** i18n and RTL, local fonts, auth with localStorage persistence, the permission model with guards and permission-filtered menus, the axios layer, the storefront, login/register, the admin dashboard, and all four customer account pages.
+**Working:** everything above — i18n and RTL, local fonts, auth with localStorage persistence, the permission model, the axios layer, the storefront, login/register, the admin dashboard, all seven admin CRUD sections, all four customer account pages, product image galleries with a selectable default, profile photo upload, and enable/disable for products and customers.
 
-**Next phase:** the seven admin sections are live, guarded routes carrying their real permission checks, but their create/edit/delete/filter screens are placeholders. Wiring those — plus swapping the mock calls for axios — is the remaining work.
+**Next phase:** swap the mock repositories for the axios client. `src/lib/api/endpoints.ts` already names every route, and the `Repository<T>` interface is the contract the API has to satisfy — `list` maps onto `GET /resource?q=&sort=&page=`, and `create` / `update` / `remove` onto POST / PATCH / DELETE.

@@ -1,0 +1,464 @@
+"use client";
+
+import { useState } from "react";
+import { SelectField, TextField } from "@/components/form/Field";
+import { Avatar } from "@/components/Avatar";
+import { DataTable, Pagination, type Column } from "@/components/panel/DataTable";
+import { FilterToolbar, NewButton } from "@/components/panel/FilterToolbar";
+import { ConfirmDialog, Modal } from "@/components/panel/Modal";
+import { Badge, PageHeader } from "@/components/panel/ui";
+import { useI18n } from "@/i18n/I18nProvider";
+import { useAuth } from "@/lib/auth/auth-context";
+import { ROLE_SUB_ROLES } from "@/lib/auth/permissions";
+import type { Sex, SubRole } from "@/lib/auth/types";
+import { customersRepo } from "@/lib/data/repositories";
+import type { MockUser } from "@/lib/data/users";
+import { formatDate } from "@/lib/format";
+import { useFormErrors } from "@/lib/useFormErrors";
+import { useResourceList } from "@/lib/useResourceList";
+import {
+  toAsciiDigits,
+  validateAge,
+  validateEmail,
+  validateMobile,
+  validateRequired,
+} from "@/lib/validation";
+
+const BLANK = {
+  firstName: "",
+  lastName: "",
+  mobile: "",
+  email: "",
+  phone: "",
+  age: "",
+  sex: "",
+  subRole: "regular" as SubRole,
+  password: "",
+};
+
+type FormState = typeof BLANK;
+
+export function CustomersSection() {
+  const { t, locale } = useI18n();
+  const { can } = useAuth();
+  const list = useResourceList(customersRepo, {
+    // The repo backs every user; this section is only the customers.
+    initialFilters: { role: "customer" },
+    initialSortKey: "createdAt",
+    initialSortDir: "desc",
+  });
+
+  const [editing, setEditing] = useState<MockUser | "new" | null>(null);
+  const [deleting, setDeleting] = useState<MockUser | null>(null);
+  const [pending, setPending] = useState(false);
+
+  const canWrite = can("customers.write");
+
+  async function handleSave(form: FormState) {
+    setPending(true);
+    try {
+      const payload = {
+        firstName: form.firstName.trim(),
+        lastName: form.lastName.trim(),
+        mobile: toAsciiDigits(form.mobile).replace(/\D/g, ""),
+        email: form.email.trim() || undefined,
+        phone: form.phone.trim() || undefined,
+        age: form.age ? Number(toAsciiDigits(form.age)) : undefined,
+        sex: (form.sex || undefined) as Sex | undefined,
+        subRole: form.subRole,
+      };
+
+      if (editing === "new") {
+        await customersRepo.create({
+          ...payload,
+          role: "customer",
+          active: true,
+          password: form.password || "changeme",
+          createdAt: new Date().toISOString().slice(0, 10),
+          avatarColor: "#0ea5e9",
+        });
+      } else if (editing) {
+        await customersRepo.update(editing.id, payload);
+      }
+
+      setEditing(null);
+      list.reload();
+    } finally {
+      setPending(false);
+    }
+  }
+
+  async function toggleActive(user: MockUser, active: boolean) {
+    await customersRepo.update(user.id, { active });
+    list.reload();
+  }
+
+  async function handleDelete() {
+    if (!deleting) return;
+    setPending(true);
+    try {
+      await customersRepo.remove(deleting.id);
+      setDeleting(null);
+      list.reload();
+    } finally {
+      setPending(false);
+    }
+  }
+
+  const columns: Column<MockUser>[] = [
+    {
+      key: "name",
+      header: t("common.name"),
+      sortable: true,
+      render: (u) => (
+        <div className="flex items-center gap-2.5">
+          <Avatar
+            firstName={u.firstName}
+            lastName={u.lastName}
+            avatarUrl={u.avatarUrl}
+            avatarColor={u.avatarColor}
+            size="sm"
+          />
+          <span
+            className={`font-medium ${
+              u.active ? "text-slate-900" : "text-slate-400 line-through"
+            }`}
+          >
+            {u.firstName} {u.lastName}
+          </span>
+        </div>
+      ),
+    },
+    {
+      key: "mobile",
+      header: t("auth.mobile"),
+      sortable: true,
+      render: (u) => <span className="force-ltr">{u.mobile}</span>,
+    },
+    {
+      key: "email",
+      header: t("account.email"),
+      hideOnMobile: true,
+      render: (u) =>
+        u.email ? (
+          <span className="force-ltr text-slate-600">{u.email}</span>
+        ) : (
+          <span className="text-slate-300">—</span>
+        ),
+    },
+    {
+      key: "subRole",
+      header: t("admin.subRole"),
+      sortable: true,
+      hideOnMobile: true,
+      render: (u) => (
+        <Badge tone={u.subRole === "vip" ? "info" : "neutral"}>
+          {t(`roles.${u.subRole}`)}
+        </Badge>
+      ),
+    },
+    {
+      key: "createdAt",
+      header: t("common.date"),
+      sortable: true,
+      hideOnMobile: true,
+      render: (u) => (
+        <span className="text-slate-500">{formatDate(u.createdAt, locale)}</span>
+      ),
+    },
+    {
+      key: "active",
+      header: t("common.status"),
+      render: (u) => (
+        <Badge tone={u.active ? "success" : "neutral"}>
+          {u.active ? t("common.active") : t("common.disabled")}
+        </Badge>
+      ),
+    },
+  ];
+
+  return (
+    <>
+      <PageHeader
+        title={t("admin.customers")}
+        action={
+          canWrite && (
+            <NewButton
+              label={t("admin.newCustomer")}
+              onClick={() => setEditing("new")}
+            />
+          )
+        }
+      />
+
+      <FilterToolbar
+        q={list.q}
+        onQ={list.setQ}
+        placeholder={t("admin.searchCustomers")}
+        values={list.filters}
+        onFilter={list.setFilter}
+        onReset={list.reset}
+        hasActiveFilters={list.hasActiveFilters}
+        filters={[
+          {
+            key: "subRole",
+            label: t("admin.subRole"),
+            options: ROLE_SUB_ROLES.customer.map((value) => ({
+              value,
+              label: t(`roles.${value}`),
+            })),
+          },
+          {
+            key: "active",
+            label: t("common.status"),
+            options: [
+              { value: "true", label: t("common.active") },
+              { value: "false", label: t("common.disabled") },
+            ],
+          },
+        ]}
+      />
+
+      {list.error && (
+        <p className="mb-4 rounded-xl bg-rose-50 p-4 text-sm text-rose-700">
+          {t("common.error")}: {list.error}
+        </p>
+      )}
+
+      <DataTable
+        columns={columns}
+        rows={list.rows}
+        rowKey={(u) => u.id}
+        loading={list.loading}
+        sortKey={list.sortKey}
+        sortDir={list.sortDir}
+        onSort={list.toggleSort}
+        actions={
+          canWrite
+            ? [
+                {
+                  icon: "power",
+                  label: t("common.disable"),
+                  visible: (u) => u.active,
+                  onClick: (u) => toggleActive(u, false),
+                },
+                {
+                  icon: "power",
+                  label: t("common.enable"),
+                  visible: (u) => !u.active,
+                  onClick: (u) => toggleActive(u, true),
+                },
+                {
+                  icon: "pencil",
+                  label: t("common.edit"),
+                  onClick: (u) => setEditing(u),
+                },
+                {
+                  icon: "trash",
+                  label: t("common.delete"),
+                  tone: "danger",
+                  onClick: (u) => setDeleting(u),
+                },
+              ]
+            : undefined
+        }
+      />
+
+      <Pagination
+        page={list.page}
+        pageCount={list.pageCount}
+        total={list.total}
+        onPage={list.setPage}
+      />
+
+      {editing !== null && (
+        <CustomerForm
+          key={editing === "new" ? "new" : editing.id}
+          initial={editing}
+          pending={pending}
+          onSave={handleSave}
+          onCancel={() => setEditing(null)}
+        />
+      )}
+
+      <ConfirmDialog
+        open={deleting !== null}
+        title={t("admin.deleteCustomer")}
+        body={
+          deleting ? `${deleting.firstName} ${deleting.lastName}` : undefined
+        }
+        pending={pending}
+        onConfirm={handleDelete}
+        onCancel={() => setDeleting(null)}
+      />
+    </>
+  );
+}
+
+function CustomerForm({
+  initial,
+  pending,
+  onSave,
+  onCancel,
+}: {
+  initial: MockUser | "new";
+  pending: boolean;
+  onSave: (form: FormState) => void;
+  onCancel: () => void;
+}) {
+  const { t } = useI18n();
+  const isNew = initial === "new";
+
+  const [form, setForm] = useState<FormState>(
+    isNew
+      ? BLANK
+      : {
+          firstName: initial.firstName,
+          lastName: initial.lastName,
+          mobile: initial.mobile,
+          email: initial.email ?? "",
+          phone: initial.phone ?? "",
+          age: initial.age != null ? String(initial.age) : "",
+          sex: initial.sex ?? "",
+          subRole: initial.subRole,
+          password: "",
+        }
+  );
+  const { errors, setErrors, clear } = useFormErrors();
+
+  function set<K extends keyof FormState>(key: K, value: FormState[K]) {
+    setForm((prev) => ({ ...prev, [key]: value }));
+    clear(key as string);
+  }
+
+  function handleSubmit(e: React.FormEvent) {
+    e.preventDefault();
+
+    const next: Record<string, string> = {};
+    if (!validateRequired(form.firstName)) {
+      next.firstName = t("validation.required");
+    }
+    if (!validateRequired(form.lastName)) {
+      next.lastName = t("validation.required");
+    }
+    if (!validateMobile(form.mobile)) next.mobile = t("validation.mobileInvalid");
+    if (!validateEmail(form.email)) next.email = t("validation.emailInvalid");
+    if (!validateAge(form.age)) next.age = t("validation.ageInvalid");
+
+    setErrors(next);
+    if (Object.keys(next).length > 0) return;
+
+    onSave(form);
+  }
+
+  return (
+    <Modal
+      open
+      size="lg"
+      title={isNew ? t("admin.newCustomer") : t("admin.editCustomer")}
+      onClose={onCancel}
+      footer={
+        <>
+          <button
+            type="button"
+            onClick={onCancel}
+            className="rounded-lg border border-slate-200 px-4 py-2 text-sm font-medium text-slate-600 hover:bg-slate-50"
+          >
+            {t("common.cancel")}
+          </button>
+          <button
+            type="submit"
+            form="customer-form"
+            disabled={pending}
+            className="rounded-lg bg-indigo-600 px-4 py-2 text-sm font-semibold text-white hover:bg-indigo-700 disabled:opacity-60"
+          >
+            {pending
+              ? t("common.loading")
+              : isNew
+                ? t("common.create")
+                : t("common.saveChanges")}
+          </button>
+        </>
+      }
+    >
+      <form
+        id="customer-form"
+        onSubmit={handleSubmit}
+        className="grid gap-4 sm:grid-cols-2"
+        noValidate
+      >
+        <TextField
+          label={t("auth.firstName")}
+          required
+          value={form.firstName}
+          onChange={(v) => set("firstName", v)}
+          error={errors.firstName}
+        />
+        <TextField
+          label={t("auth.lastName")}
+          required
+          value={form.lastName}
+          onChange={(v) => set("lastName", v)}
+          error={errors.lastName}
+        />
+        <TextField
+          label={t("auth.mobile")}
+          required
+          type="tel"
+          value={form.mobile}
+          onChange={(v) => set("mobile", v)}
+          error={errors.mobile}
+        />
+        <TextField
+          label={t("account.email")}
+          type="email"
+          value={form.email}
+          onChange={(v) => set("email", v)}
+          error={errors.email}
+        />
+        <TextField
+          label={t("account.phone")}
+          type="tel"
+          value={form.phone}
+          onChange={(v) => set("phone", v)}
+        />
+        <TextField
+          label={t("account.age")}
+          inputMode="numeric"
+          value={form.age}
+          onChange={(v) => set("age", v)}
+          error={errors.age}
+        />
+        <SelectField
+          label={t("account.sex")}
+          value={form.sex}
+          onChange={(v) => set("sex", v)}
+          placeholder={t("common.none")}
+          options={(["male", "female", "other"] as const).map((value) => ({
+            value,
+            label: t(`account.${value}`),
+          }))}
+        />
+        <SelectField
+          label={t("admin.subRole")}
+          value={form.subRole}
+          onChange={(v) => set("subRole", v as SubRole)}
+          options={ROLE_SUB_ROLES.customer.map((value) => ({
+            value,
+            label: t(`roles.${value}`),
+          }))}
+        />
+
+        {isNew && (
+          <TextField
+            className="sm:col-span-2"
+            label={t("admin.initialPassword")}
+            hint={t("admin.initialPasswordHint")}
+            value={form.password}
+            onChange={(v) => set("password", v)}
+          />
+        )}
+      </form>
+    </Modal>
+  );
+}
