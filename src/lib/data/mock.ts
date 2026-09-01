@@ -1,20 +1,24 @@
+import { DEFAULT_LOCALE, type Locale } from "@/i18n/config";
+import { allTranslations } from "@/i18n/localized";
 import type { Category, Product, SearchFilters } from "@/lib/types";
 
 // A small regional storefront for demo purposes. All prices in EUR cents.
 export const MOCK_CATEGORIES: Category[] = [
-  { id: "cat-1", name: "Audio", slug: "audio" },
-  { id: "cat-2", name: "Wearables", slug: "wearables" },
-  { id: "cat-3", name: "Desk & Office", slug: "desk" },
-  { id: "cat-4", name: "Home", slug: "home" },
+  { id: "cat-1", name: { en: "Audio", fa: "صوتی" }, slug: "audio" },
+  { id: "cat-2", name: { en: "Wearables", fa: "پوشیدنی" }, slug: "wearables" },
+  { id: "cat-3", name: { en: "Desk & Office", fa: "میز و اداری" }, slug: "desk" },
+  { id: "cat-4", name: { en: "Home", fa: "خانه" }, slug: "home" },
 ];
 
 export const MOCK_PRODUCTS: Product[] = [
   {
     id: "p-001",
     slug: "aurora-wireless-headphones",
-    title: "Aurora Wireless Headphones",
-    description:
-      "Immersive over-ear headphones with active noise cancelling, 40h battery and multipoint Bluetooth.",
+    title: { en: "Aurora Wireless Headphones", fa: "هدفون بی‌سیم آرورا" },
+    description: {
+      en: "Immersive over-ear headphones with active noise cancelling, 40h battery and multipoint Bluetooth.",
+      fa: "هدفون روگوشی با حذف نویز فعال، ۴۰ ساعت شارژ و اتصال بلوتوث چنددستگاهه.",
+    },
     price: 19900,
     compareAtPrice: 24900,
     currency: "EUR",
@@ -29,9 +33,11 @@ export const MOCK_PRODUCTS: Product[] = [
   {
     id: "p-002",
     slug: "pulse-earbuds",
-    title: "Pulse Buds Pro",
-    description:
-      "Compact true-wireless earbuds with adaptive transparency and wireless charging case.",
+    title: { en: "Pulse Buds Pro", fa: "ایرباد پالس پرو" },
+    description: {
+      en: "Compact true-wireless earbuds with adaptive transparency and wireless charging case.",
+      fa: "ایرباد کاملاً بی‌سیم و جمع‌وجور با حالت شفافیت تطبیقی و کیس شارژ بی‌سیم.",
+    },
     price: 12900,
     compareAtPrice: null,
     currency: "EUR",
@@ -46,9 +52,11 @@ export const MOCK_PRODUCTS: Product[] = [
   {
     id: "p-003",
     slug: "nomad-smartwatch",
-    title: "Nomad Smartwatch",
-    description:
-      "Lightweight smartwatch with always-on AMOLED display, GPS and 7-day battery.",
+    title: { en: "Nomad Smartwatch", fa: "ساعت هوشمند نومَد" },
+    description: {
+      en: "Lightweight smartwatch with always-on AMOLED display, GPS and 7-day battery.",
+      fa: "ساعت هوشمند سبک با نمایشگر AMOLED همیشه‌روشن، GPS و ۷ روز شارژدهی.",
+    },
     price: 24900,
     compareAtPrice: 27900,
     currency: "EUR",
@@ -63,9 +71,11 @@ export const MOCK_PRODUCTS: Product[] = [
   {
     id: "p-004",
     slug: "orbit-fitness-band",
-    title: "Orbit Fitness Band",
-    description:
-      "Slim activity tracker with heart-rate, sleep and stress monitoring plus 10-day battery.",
+    title: { en: "Orbit Fitness Band", fa: "مچ‌بند ورزشی اوربیت" },
+    description: {
+      en: "Slim activity tracker with heart-rate, sleep and stress monitoring plus 10-day battery.",
+      fa: "مچ‌بند باریک با پایش ضربان قلب، خواب و استرس به‌همراه ۱۰ روز شارژدهی.",
+    },
     price: 7900,
     compareAtPrice: null,
     currency: "EUR",
@@ -80,9 +90,11 @@ export const MOCK_PRODUCTS: Product[] = [
   {
     id: "p-005",
     slug: "vertex-mechanical-keyboard",
-    title: "Vertex Mechanical Keyboard",
-    description:
-      "Hot-swappable 75% keyboard with pre-lubed linear switches and PBT keycaps.",
+    title: { en: "Vertex Mechanical Keyboard", fa: "کیبورد مکانیکی ورتکس" },
+    description: {
+      en: "Hot-swappable 75% keyboard with pre-lubed linear switches and PBT keycaps.",
+      fa: "کیبورد مکانیکی فشرده با سوییچ هات‌سواپ، نوربندی RGB و بدنه آلومینیومی.",
+    },
     price: 13900,
     compareAtPrice: null,
     currency: "EUR",
@@ -97,9 +109,11 @@ export const MOCK_PRODUCTS: Product[] = [
   {
     id: "p-006",
     slug: "halo-desktop-speaker",
-    title: "Halo Desktop Speaker",
-    description:
-      "Compact 2.0 desktop speaker set with crisp highs and a punchy 3.5\" woofer.",
+    title: { en: "Halo Desktop Speaker", fa: "اسپیکر رومیزی هیلو" },
+    description: {
+      en: "Compact 2.0 desktop speaker set with crisp highs and a punchy 3.5\" woofer.",
+      fa: "اسپیکر رومیزی با صدای ۳۶۰ درجه، بلوتوث ۵٫۳ و بدنه پارچه‌ای.",
+    },
     price: 8990,
     compareAtPrice: 10900,
     currency: "EUR",
@@ -114,9 +128,11 @@ export const MOCK_PRODUCTS: Product[] = [
   {
     id: "p-007",
     slug: "lumen-table-lamp",
-    title: "Lumen Table Lamp",
-    description:
-      "Dimmable LED lamp with warm/cool white presets and a touch slider for brightness.",
+    title: { en: "Lumen Table Lamp", fa: "چراغ‌مطالعه لومن" },
+    description: {
+      en: "Dimmable LED lamp with warm/cool white presets and a touch slider for brightness.",
+      fa: "چراغ رومیزی LED با دمای رنگ قابل تنظیم، دیمر لمسی و پورت شارژ USB-C.",
+    },
     price: 6490,
     compareAtPrice: null,
     currency: "EUR",
@@ -131,9 +147,11 @@ export const MOCK_PRODUCTS: Product[] = [
   {
     id: "p-008",
     slug: "terra-ceramic-mug",
-    title: "Terra Ceramic Mug",
-    description:
-      "Hand-glazed 350ml stoneware mug. Dishwasher and microwave safe.",
+    title: { en: "Terra Ceramic Mug", fa: "ماگ سرامیکی ترا" },
+    description: {
+      en: "Hand-glazed 350ml stoneware mug. Dishwasher and microwave safe.",
+      fa: "ماگ سرامیکی دست‌ساز با لعاب مات، مناسب ماشین ظرفشویی و مایکروویو.",
+    },
     price: 1900,
     compareAtPrice: null,
     currency: "EUR",
@@ -152,16 +170,23 @@ function delay(ms = 250) {
   return new Promise<void>((r) => setTimeout(r, ms));
 }
 
-export async function mockList(filters: SearchFilters = {}): Promise<Product[]> {
+export async function mockList(
+  filters: SearchFilters = {},
+  locale: Locale = DEFAULT_LOCALE
+): Promise<Product[]> {
   await delay();
   let items = [...MOCK_PRODUCTS];
 
   const q = filters.q?.trim().toLowerCase();
   if (q) {
+    // Search every translation, so a Persian query still finds a product
+    // the shopper first saw in English (and the other way round).
     items = items.filter((p) =>
-      p.title.toLowerCase().includes(q) ||
-      p.description.toLowerCase().includes(q) ||
-      p.tags.some((t) => t.toLowerCase().includes(q))
+      [
+        ...allTranslations(p.title),
+        ...allTranslations(p.description),
+        ...p.tags,
+      ].some((value) => value.toLowerCase().includes(q))
     );
   }
 
@@ -192,7 +217,11 @@ export async function mockList(filters: SearchFilters = {}): Promise<Product[]> 
       items.sort((a, b) => b.price - a.price);
       break;
     case "name-asc":
-      items.sort((a, b) => a.title.localeCompare(b.title));
+      // Persian collates differently from Latin, so sort in the caller's
+      // language rather than by raw code points.
+      items.sort((a, b) =>
+        a.title[locale].localeCompare(b.title[locale], locale)
+      );
       break;
     case "rating-desc":
       items.sort((a, b) => b.rating - a.rating);

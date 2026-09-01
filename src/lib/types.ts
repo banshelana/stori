@@ -1,16 +1,18 @@
+import type { LocalizedText } from "@/i18n/localized";
+
 export type DataSource = "mock" | "api";
 
 export interface Category {
   id: string;
-  name: string;
+  name: LocalizedText;
   slug: string;
 }
 
 export interface Product {
   id: string;
   slug: string;
-  title: string;
-  description: string;
+  title: LocalizedText;
+  description: LocalizedText;
   price: number; // in cents
   compareAtPrice?: number | null; // in cents, for showing a sale
   currency: string; // ISO-4217, e.g. "EUR"

@@ -13,6 +13,7 @@ import {
   mockGetBySlug,
   mockList,
 } from "@/lib/data/mock";
+import { DEFAULT_LOCALE, type Locale } from "@/i18n/config";
 import type {
   Category,
   DataSource,
@@ -33,9 +34,15 @@ function effective(source: DataSource): DataSource {
 
 export async function listProducts(
   source: DataSource,
-  filters: SearchFilters = {}
+  filters: SearchFilters = {},
+  // Name sorting is collation-sensitive, so the mock source needs to know
+  // which language it is ordering in. The API infers it from the
+  // Accept-Language header the axios client already sends.
+  locale: Locale = DEFAULT_LOCALE
 ): Promise<Product[]> {
-  return effective(source) === "api" ? apiList(filters) : mockList(filters);
+  return effective(source) === "api"
+    ? apiList(filters)
+    : mockList(filters, locale);
 }
 
 export async function getProductBySlug(

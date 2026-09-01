@@ -1,16 +1,19 @@
 "use client";
 
 import { ProductCard } from "@/components/ProductCard";
+import { useI18n } from "@/i18n/I18nProvider";
 import { useProducts } from "@/lib/hooks";
-import type { SearchFilters } from "@/lib/types";
+import { useFilters } from "@/lib/useFilters";
 
-export function ProductGrid({ filters }: { filters: SearchFilters }) {
+export function ProductGrid() {
+  const filters = useFilters();
   const { data, loading, error } = useProducts(filters);
+  const { t } = useI18n();
 
   if (error) {
     return (
       <p className="rounded-xl border border-rose-200 bg-rose-50 p-4 text-sm text-rose-700">
-        Failed to load products: {error}
+        {t("common.error")}: {error}
       </p>
     );
   }
@@ -32,10 +35,10 @@ export function ProductGrid({ filters }: { filters: SearchFilters }) {
   if (!data || data.length === 0) {
     return (
       <div className="rounded-2xl border border-dashed border-slate-300 bg-white p-12 text-center">
-        <p className="text-lg font-semibold text-slate-700">No products found</p>
-        <p className="mt-1 text-sm text-slate-500">
-          Try adjusting your search or filters.
+        <p className="text-lg font-semibold text-slate-700">
+          {t("common.noResults")}
         </p>
+        <p className="mt-1 text-sm text-slate-500">{t("common.noResultsHint")}</p>
       </div>
     );
   }

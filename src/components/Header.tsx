@@ -1,27 +1,46 @@
+"use client";
+
 import Link from "next/link";
 import { CartButton } from "@/components/CartButton";
 import { DataSourceToggle } from "@/components/DataSourceToggle";
+import { LocaleSwitcher } from "@/components/LocaleSwitcher";
+import { UserMenu } from "@/components/UserMenu";
+import { useI18n } from "@/i18n/I18nProvider";
+import { useLocaleHref } from "@/i18n/navigation";
 
 export function Header() {
+  const { t } = useI18n();
+  const href = useLocaleHref();
+
   return (
     <header className="sticky top-0 z-40 border-b border-slate-200 bg-white/80 backdrop-blur">
       <div className="mx-auto flex max-w-6xl items-center justify-between gap-4 px-4 py-3">
-        <Link href="/" className="flex items-center gap-2 text-lg font-bold">
+        <Link
+          href={href("/")}
+          className="flex items-center gap-2 text-lg font-bold"
+        >
           <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-indigo-600 text-white">
-            ⌂
+            &#8962;
           </span>
-          <span className="hidden sm:inline">Storefront</span>
+          <span className="hidden sm:inline">{t("common.appName")}</span>
         </Link>
 
         <nav className="flex items-center gap-1 text-sm font-medium text-slate-600">
-          <Link className="rounded-md px-3 py-1.5 hover:bg-slate-100 hover:text-slate-900" href="/products">
-            Products
+          <Link
+            className="rounded-md px-3 py-1.5 hover:bg-slate-100 hover:text-slate-900"
+            href={href("/products")}
+          >
+            {t("nav.products")}
           </Link>
         </nav>
 
-        <div className="flex items-center gap-3">
-          <DataSourceToggle />
+        <div className="flex items-center gap-2 sm:gap-3">
+          <div className="hidden md:block">
+            <DataSourceToggle />
+          </div>
+          <LocaleSwitcher compact />
           <CartButton />
+          <UserMenu />
         </div>
       </div>
     </header>

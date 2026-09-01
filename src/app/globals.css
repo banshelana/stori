@@ -1,7 +1,21 @@
 @import "tailwindcss";
 
+/* ---------------------------------------------------------------
+   Fonts resolve from the CSS variables set by next/font/local in
+   app/[locale]/layout.tsx. Selecting on [lang] means the correct
+   family applies during SSR — no flash, no JavaScript involved.
+   --------------------------------------------------------------- */
+@theme {
+  --font-sans: var(--font-en), "Segoe UI", system-ui, sans-serif;
+  --color-brand: #4f46e5;
+}
+
 :root {
-  --brand: #4f46e5;
+  --font-active: var(--font-en), "Segoe UI", system-ui, sans-serif;
+}
+
+html[lang="fa"] {
+  --font-active: var(--font-fa), Tahoma, "Segoe UI", sans-serif;
 }
 
 html {
@@ -9,14 +23,58 @@ html {
 }
 
 body {
-  @apply bg-slate-50 text-slate-900 antialiased;
+  font-family: var(--font-active);
+  @apply bg-slate-50 text-slate-900;
 }
 
-/* Custom scrollbar (optional) */
+/* Persian text sits lower in its em box and reads better with a little
+   more leading; applied at the root so every page inherits it. */
+html[lang="fa"] body {
+  line-height: 1.85;
+  letter-spacing: 0;
+}
+
+/* ---------------------------------------------------------------
+   RTL support.
+
+   Layout should use Tailwind's logical utilities (ps-/pe-, ms-/me-,
+   start-/end-, text-start/text-end) which flip automatically. The
+   rules below only cover cases that cannot: glyphs that point in a
+   direction, and inputs that must stay LTR regardless of page dir.
+   --------------------------------------------------------------- */
+
+/* Arrows in buttons and links mirror with the page. */
+[dir="rtl"] .rtl-flip {
+  transform: scaleX(-1);
+}
+
+/* Phone numbers, postal codes, emails, prices and IBANs read
+   left-to-right even inside an RTL page. */
+.force-ltr {
+  direction: ltr;
+  unicode-bidi: isolate;
+  text-align: start;
+}
+
+[dir="rtl"] input[type="tel"],
+[dir="rtl"] input[type="email"],
+[dir="rtl"] input[type="url"],
+[dir="rtl"] input[inputmode="numeric"] {
+  direction: ltr;
+  text-align: right;
+}
+
+/* Custom scrollbar */
 ::-webkit-scrollbar {
   width: 10px;
   height: 10px;
 }
 ::-webkit-scrollbar-thumb {
   @apply rounded-full bg-slate-300;
+}
+
+/* Keep the focus ring visible for keyboard users in both directions. */
+:focus-visible {
+  outline: 2px solid var(--color-brand);
+  outline-offset: 2px;
 }
