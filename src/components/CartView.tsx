@@ -18,17 +18,17 @@ export function CartView() {
   const href = useLocaleHref();
 
   if (!hydrated) {
-    return <div className="h-64 animate-pulse rounded-2xl bg-slate-200" aria-hidden />;
+    return <div className="skeleton h-64 rounded-2xl" aria-hidden />;
   }
 
   if (items.length === 0) {
     return (
       <div className="rounded-2xl border border-dashed border-slate-300 bg-white px-6 py-16 text-center">
-        <p className="text-2xl font-semibold text-slate-800">{t("cart.empty")}</p>
+        <p className="text-2xl font-bold text-slate-800">{t("cart.empty")}</p>
         <p className="mt-2 text-slate-500">{t("cart.emptyHint")}</p>
         <Link
           href={href("/products")}
-          className="mt-6 inline-block rounded-lg bg-indigo-600 px-5 py-2.5 text-sm font-semibold text-white hover:bg-indigo-700"
+          className="btn-glow mt-6 inline-block rounded-xl bg-gradient-to-r from-indigo-600 to-violet-600 px-5 py-3 text-sm font-bold text-white"
         >
           {t("cart.browse")}
         </Link>
@@ -44,7 +44,7 @@ export function CartView() {
             {items.map((i) => (
               <div
                 key={i.productId}
-                className="h-24 animate-pulse rounded-xl bg-slate-200"
+                className="skeleton h-24 rounded-xl"
                 aria-hidden
               />
             ))}
@@ -147,7 +147,7 @@ export function CartView() {
           ))}
       </div>
 
-      <aside className="h-fit rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
+      <aside className="h-fit rounded-2xl border border-slate-200 bg-white p-6 shadow-sm lg:sticky lg:top-24">
         <h2 className="text-lg font-bold text-slate-900">{t("cart.summary")}</h2>
         <dl className="mt-4 space-y-2 text-sm">
           <div className="flex justify-between">
@@ -174,7 +174,7 @@ export function CartView() {
 
         <Link
           href={href("/checkout")}
-          className="mt-6 block w-full rounded-lg bg-indigo-600 py-3 text-center text-sm font-semibold text-white hover:bg-indigo-700"
+          className="btn-glow mt-6 block w-full rounded-xl bg-gradient-to-r from-indigo-600 to-violet-600 py-3.5 text-center text-sm font-bold text-white"
         >
           {t("cart.proceed")}
         </Link>

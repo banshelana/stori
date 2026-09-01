@@ -39,8 +39,8 @@ export function CheckoutView() {
 
   if (placed) {
     return (
-      <div className="mx-auto max-w-md rounded-2xl border border-slate-200 bg-white p-10 text-center shadow-sm">
-        <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-full bg-emerald-100 text-2xl">
+      <div className="animate-scale-in mx-auto max-w-md rounded-2xl border border-slate-200 bg-white p-10 text-center shadow-lg">
+        <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-emerald-100 text-3xl text-emerald-600">
           &#10003;
         </div>
         <h2 className="mt-4 text-2xl font-bold text-slate-900">
@@ -59,7 +59,7 @@ export function CheckoutView() {
   }
 
   if (!hydrated || loading) {
-    return <div className="h-64 animate-pulse rounded-2xl bg-slate-200" aria-hidden />;
+    return <div className="skeleton h-64 rounded-2xl" aria-hidden />;
   }
 
   if (items.length === 0) {
@@ -120,7 +120,7 @@ export function CheckoutView() {
         </p>
       </div>
 
-      <aside className="h-fit rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
+      <aside className="h-fit rounded-2xl border border-slate-200 bg-white p-6 shadow-sm lg:sticky lg:top-24">
         <h2 className="text-lg font-bold text-slate-900">{t("cart.summary")}</h2>
         <ul className="mt-4 space-y-2 text-sm">
           {lines.map(({ productId, quantity, product }) => (
@@ -144,7 +144,7 @@ export function CheckoutView() {
         </div>
         <button
           type="submit"
-          className="mt-6 w-full rounded-lg bg-indigo-600 py-3 text-sm font-semibold text-white hover:bg-indigo-700"
+          className="btn-glow mt-6 w-full rounded-xl bg-gradient-to-r from-indigo-600 to-violet-600 py-3.5 text-sm font-bold text-white"
         >
           {t("checkout.pay", { amount: formatPrice(subtotal, currency, locale) })}
         </button>

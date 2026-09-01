@@ -88,7 +88,7 @@ export function Modal({
         type="button"
         aria-label={t("common.cancel")}
         onClick={onClose}
-        className="fixed inset-0 bg-slate-900/40 backdrop-blur-[1px]"
+        className="animate-fade-in fixed inset-0 bg-slate-900/40 backdrop-blur-sm"
       />
 
       <div
@@ -96,7 +96,7 @@ export function Modal({
         role="dialog"
         aria-modal="true"
         aria-label={title}
-        className={`relative my-8 w-full rounded-2xl bg-white shadow-xl ${
+        className={`animate-scale-in relative my-8 w-full rounded-2xl bg-white shadow-2xl ${
           size === "lg" ? "max-w-3xl" : "max-w-xl"
         }`}
       >

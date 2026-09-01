@@ -13,13 +13,13 @@ export function Header() {
   const href = useLocaleHref();
 
   return (
-    <header className="sticky top-0 z-40 border-b border-slate-200 bg-white/80 backdrop-blur">
+    <header className="sticky top-0 z-40 border-b border-slate-200/80 bg-white/70 backdrop-blur-xl">
       <div className="mx-auto flex max-w-6xl items-center justify-between gap-4 px-4 py-3">
         <Link
           href={href("/")}
-          className="flex items-center gap-2 text-lg font-bold"
+          className="group flex items-center gap-2 text-lg font-bold"
         >
-          <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-indigo-600 text-white">
+          <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-to-br from-indigo-600 to-violet-600 text-white shadow-sm transition-transform duration-300 group-hover:scale-105">
             &#8962;
           </span>
           <span className="hidden sm:inline">{t("common.appName")}</span>
@@ -27,7 +27,7 @@ export function Header() {
 
         <nav className="flex items-center gap-1 text-sm font-medium text-slate-600">
           <Link
-            className="rounded-md px-3 py-1.5 hover:bg-slate-100 hover:text-slate-900"
+            className="rounded-lg px-3 py-1.5 transition-colors hover:bg-slate-100 hover:text-slate-900"
             href={href("/products")}
           >
             {t("nav.products")}

@@ -21,7 +21,7 @@ export function ProductDetail({ slug }: { slug: string }) {
   if (loading) {
     return (
       <main className="mx-auto max-w-5xl px-4 py-12">
-        <div className="h-72 animate-pulse rounded-2xl bg-slate-200" aria-hidden />
+        <div className="skeleton h-72 rounded-2xl" aria-hidden />
       </main>
     );
   }
@@ -39,7 +39,7 @@ export function ProductDetail({ slug }: { slug: string }) {
         </p>
         <Link
           href={href("/products")}
-          className="mt-6 inline-block rounded-lg bg-indigo-600 px-4 py-2 text-sm font-semibold text-white hover:bg-indigo-700"
+          className="btn-glow mt-6 inline-block rounded-xl bg-gradient-to-r from-indigo-600 to-violet-600 px-5 py-2.5 text-sm font-bold text-white"
         >
           {t("product.backToProducts")}
         </Link>
@@ -48,7 +48,7 @@ export function ProductDetail({ slug }: { slug: string }) {
   }
 
   return (
-    <main className="mx-auto max-w-5xl px-4 py-10">
+    <main className="animate-fade-up mx-auto max-w-5xl px-4 py-10">
       <nav className="mb-6 text-sm text-slate-500">
         <Link href={href("/products")} className="hover:text-indigo-600">
           {t("nav.products")}
@@ -67,7 +67,7 @@ export function ProductDetail({ slug }: { slug: string }) {
 
         <div className="flex flex-col">
           <Rating value={product.rating} />
-          <h1 className="mt-2 text-3xl font-bold text-slate-900">
+          <h1 className="mt-2 text-3xl font-extrabold tracking-tight text-slate-900">
             {localized(product.title, locale)}
           </h1>
           <Price product={product} className="mt-3" />

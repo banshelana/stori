@@ -43,6 +43,12 @@ export default async function LocaleLayout({
       suppressHydrationWarning
     >
       <body className="font-sans antialiased">
+        {/* Scroll-reveal starts elements at opacity 0 and JavaScript
+            brings them in. With scripting off that would hide the page,
+            so neutralise it outright. */}
+        <noscript>
+          <style>{`.reveal-pending { opacity: 1 !important; }`}</style>
+        </noscript>
         <I18nProvider locale={typedLocale} dict={dict}>
           <AuthProvider>
             <DataSourceProvider>

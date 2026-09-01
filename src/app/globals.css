@@ -1,21 +1,42 @@
 @import "tailwindcss";
 
 /* ---------------------------------------------------------------
+   Design tokens.
+
    Fonts resolve from the CSS variables set by next/font/local in
    app/[locale]/layout.tsx. Selecting on [lang] means the correct
    family applies during SSR — no flash, no JavaScript involved.
    --------------------------------------------------------------- */
 @theme {
   --font-sans: var(--font-en), "Segoe UI", system-ui, sans-serif;
+
   --color-brand: #4f46e5;
+  --color-brand-600: #4f46e5;
+  --color-brand-500: #6366f1;
+  --color-brand-400: #818cf8;
+  --color-accent: #d946ef;
+  --color-accent-500: #a855f7;
+
+  --ease-out-soft: cubic-bezier(0.16, 1, 0.3, 1);
+  --ease-spring: cubic-bezier(0.34, 1.56, 0.64, 1);
+
+  --shadow-lift: 0 10px 30px -12px rgb(15 23 42 / 0.25);
+  --shadow-glow: 0 18px 45px -18px rgb(79 70 229 / 0.65);
 }
 
 :root {
   --font-active: var(--font-en), "Segoe UI", system-ui, sans-serif;
+  /* Horizontal slide direction, flipped for RTL so entrance motion
+     always travels with the reading direction. */
+  --slide-from: -1.25rem;
 }
 
 html[lang="fa"] {
   --font-active: var(--font-fa), Tahoma, "Segoe UI", sans-serif;
+}
+
+[dir="rtl"] {
+  --slide-from: 1.25rem;
 }
 
 html {
@@ -43,13 +64,10 @@ html[lang="fa"] body {
    direction, and inputs that must stay LTR regardless of page dir.
    --------------------------------------------------------------- */
 
-/* Arrows in buttons and links mirror with the page. */
 [dir="rtl"] .rtl-flip {
   transform: scaleX(-1);
 }
 
-/* Phone numbers, postal codes, emails, prices and IBANs read
-   left-to-right even inside an RTL page. */
 .force-ltr {
   direction: ltr;
   unicode-bidi: isolate;
@@ -64,7 +82,200 @@ html[lang="fa"] body {
   text-align: right;
 }
 
-/* Custom scrollbar */
+/* ---------------------------------------------------------------
+   Motion.
+
+   Every animation below is opacity/transform only, so nothing forces
+   layout during playback. All of it is switched off wholesale in the
+   reduced-motion block at the end of this file.
+   --------------------------------------------------------------- */
+
+@keyframes fade-up {
+  from {
+    opacity: 0;
+    transform: translate3d(0, 1.25rem, 0);
+  }
+  to {
+    opacity: 1;
+    transform: translate3d(0, 0, 0);
+  }
+}
+
+@keyframes fade-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes slide-in {
+  from {
+    opacity: 0;
+    transform: translate3d(var(--slide-from), 0, 0);
+  }
+  to {
+    opacity: 1;
+    transform: translate3d(0, 0, 0);
+  }
+}
+
+@keyframes scale-in {
+  from {
+    opacity: 0;
+    transform: scale(0.94);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+@keyframes float-slow {
+  0%,
+  100% {
+    transform: translate3d(0, 0, 0);
+  }
+  50% {
+    transform: translate3d(0, -1.5rem, 0);
+  }
+}
+
+@keyframes drift {
+  0%,
+  100% {
+    transform: translate3d(0, 0, 0) scale(1);
+  }
+  33% {
+    transform: translate3d(3%, -4%, 0) scale(1.06);
+  }
+  66% {
+    transform: translate3d(-3%, 3%, 0) scale(0.97);
+  }
+}
+
+@keyframes shimmer {
+  from {
+    background-position: 200% 0;
+  }
+  to {
+    background-position: -200% 0;
+  }
+}
+
+@keyframes marquee {
+  from {
+    transform: translate3d(0, 0, 0);
+  }
+  to {
+    transform: translate3d(-50%, 0, 0);
+  }
+}
+
+/* Entrance utilities. `both` holds the from-state before the delay
+   elapses, so staggered children never flash at full opacity first. */
+.animate-fade-up {
+  animation: fade-up 0.65s var(--ease-out-soft) both;
+}
+.animate-fade-in {
+  animation: fade-in 0.5s ease-out both;
+}
+.animate-slide-in {
+  animation: slide-in 0.6s var(--ease-out-soft) both;
+}
+.animate-scale-in {
+  animation: scale-in 0.5s var(--ease-spring) both;
+}
+.animate-float {
+  animation: float-slow 7s ease-in-out infinite;
+}
+.animate-drift {
+  animation: drift 18s ease-in-out infinite;
+}
+
+/* Skeletons read as "loading" far better with a travelling sheen than
+   with a flat opacity pulse. */
+.skeleton {
+  background-image: linear-gradient(
+    90deg,
+    theme(colors.slate.200) 0%,
+    theme(colors.slate.100) 50%,
+    theme(colors.slate.200) 100%
+  );
+  background-size: 200% 100%;
+  animation: shimmer 1.6s linear infinite;
+}
+
+/* ---------------------------------------------------------------
+   Reusable surfaces
+   --------------------------------------------------------------- */
+
+/* Text filled with the brand gradient. */
+.text-gradient {
+  background-image: linear-gradient(
+    100deg,
+    var(--color-brand-400),
+    var(--color-accent)
+  );
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+/* Frosted panel over the hero artwork. */
+.glass {
+  background-color: rgb(255 255 255 / 0.1);
+  backdrop-filter: blur(12px);
+  border: 1px solid rgb(255 255 255 / 0.18);
+}
+
+/* Cards that rise slightly toward the pointer. */
+.card-lift {
+  transition:
+    transform 0.35s var(--ease-out-soft),
+    box-shadow 0.35s var(--ease-out-soft),
+    border-color 0.35s var(--ease-out-soft);
+}
+.card-lift:hover {
+  transform: translateY(-4px);
+  box-shadow: var(--shadow-lift);
+}
+
+/* Primary call to action. */
+.btn-glow {
+  transition:
+    transform 0.25s var(--ease-out-soft),
+    box-shadow 0.25s var(--ease-out-soft),
+    background-color 0.2s ease;
+}
+.btn-glow:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-glow);
+}
+.btn-glow:active {
+  transform: translateY(0);
+}
+
+/* Underline that grows from the reading edge on hover. */
+.link-underline {
+  position: relative;
+}
+.link-underline::after {
+  content: "";
+  position: absolute;
+  inset-inline-start: 0;
+  bottom: -2px;
+  height: 2px;
+  width: 0;
+  background-color: currentColor;
+  transition: width 0.3s var(--ease-out-soft);
+}
+.link-underline:hover::after {
+  width: 100%;
+}
+
+/* Scrollbar */
 ::-webkit-scrollbar {
   width: 10px;
   height: 10px;
@@ -72,9 +283,37 @@ html[lang="fa"] body {
 ::-webkit-scrollbar-thumb {
   @apply rounded-full bg-slate-300;
 }
+::-webkit-scrollbar-thumb:hover {
+  @apply bg-slate-400;
+}
 
 /* Keep the focus ring visible for keyboard users in both directions. */
 :focus-visible {
   outline: 2px solid var(--color-brand);
   outline-offset: 2px;
+}
+
+/* ---------------------------------------------------------------
+   Respect the system setting. Decoration stops; nothing that
+   conveys state is hidden, because every animation here is
+   presentational and the from-state is never the resting state.
+   --------------------------------------------------------------- */
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+    scroll-behavior: auto !important;
+  }
+
+  .card-lift:hover,
+  .btn-glow:hover {
+    transform: none;
+  }
 }

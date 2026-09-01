@@ -15,7 +15,7 @@ export function ProductCard({ product }: { product: Product }) {
   const href = useLocaleHref();
 
   return (
-    <div className="group flex flex-col overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm transition-shadow hover:shadow-md">
+    <div className="card-lift group flex flex-col overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
       <Link
         href={href(`/products/${product.slug}`)}
         className="relative block aspect-[4/3] overflow-hidden bg-slate-100"
@@ -24,11 +24,12 @@ export function ProductCard({ product }: { product: Product }) {
         <img
           src={primaryImageSrc(product)}
           alt={localized(product.title, locale)}
-          className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-105"
+          className="h-full w-full object-cover transition-transform duration-500 ease-out group-hover:scale-110"
           loading="lazy"
         />
+        <span className="absolute inset-0 bg-gradient-to-t from-slate-900/25 to-transparent opacity-0 transition-opacity duration-300 group-hover:opacity-100" />
         {product.stock <= 0 && (
-          <span className="absolute top-2 start-2 rounded bg-slate-900/80 px-2 py-0.5 text-xs font-medium text-white">
+          <span className="absolute top-2 start-2 rounded-full bg-slate-900/85 px-2.5 py-1 text-xs font-semibold text-white backdrop-blur">
             {t("product.soldOut")}
           </span>
         )}
@@ -38,7 +39,7 @@ export function ProductCard({ product }: { product: Product }) {
         <Rating value={product.rating} />
         <Link
           href={href(`/products/${product.slug}`)}
-          className="line-clamp-2 font-semibold text-slate-900 hover:text-indigo-600"
+          className="line-clamp-2 font-semibold text-slate-900 transition-colors group-hover:text-indigo-600"
         >
           {localized(product.title, locale)}
         </Link>

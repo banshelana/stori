@@ -251,6 +251,51 @@ Up to 6 images per product. Change `max` on `GalleryUpload` to adjust.
 
 ---
 
+## Look and motion
+
+The visual layer is CSS-first: tokens and keyframes in `src/app/globals.css`, two small components in `src/components/visual/`, and no animation library.
+
+### Tokens
+
+`@theme` holds the brand ramp, two easing curves (`--ease-out-soft`, `--ease-spring`) and two shadows (`--shadow-lift`, `--shadow-glow`). `--slide-from` carries the horizontal entrance offset and **flips under `[dir="rtl"]`**, so motion always travels with the reading direction.
+
+### Utilities
+
+| Class | Use |
+| --- | --- |
+| `animate-fade-up` / `-fade-in` / `-scale-in` / `-slide-in` | Entrances. All use `both` fill, so staggered children never flash at full opacity first |
+| `animate-float` / `animate-drift` | Slow ambient motion for decoration |
+| `skeleton` | Travelling sheen, replaces the flat opacity pulse on every loading state |
+| `card-lift`, `btn-glow`, `link-underline` | Hover affordances |
+| `text-gradient`, `glass` | Brand text fill, frosted panel |
+
+Every animation is opacity/transform only, so nothing forces layout while it plays.
+
+### Components
+
+`<Aurora />` — three blurred colour blobs on long offset drift cycles plus a masked grid. Pure CSS, `aria-hidden`, nothing fetched. Positioned with logical properties, so it mirrors in RTL.
+
+`<Reveal motion delay>` — plays an entrance when the element scrolls into view.
+
+### Reduced motion
+
+`globals.css` ends with a `prefers-reduced-motion: reduce` block that collapses every animation and transition to ~0s, disables smooth scrolling, and removes the hover lifts. Nothing here conveys state, so switching it all off costs no information.
+
+### Why `Reveal` has four ways to become visible
+
+Scroll-reveal that starts at `opacity: 0` has an ugly failure mode: if the trigger never fires, the content is invisible forever. That is strictly worse than appearing without an animation, so `Reveal` has four independent paths to visible:
+
+1. already in the viewport at mount — show immediately;
+2. the IntersectionObserver fires — the normal path;
+3. a passive scroll/resize check — backstop if the observer stays silent;
+4. a 2.5 s failsafe timer — if nothing above fired, the page is not rendering normally (hidden tab, throttled renderer, bfcache restore); reveal unconditionally and drop the effect.
+
+With JavaScript off entirely, a `<noscript>` rule in the locale layout neutralises the `reveal-pending` class, so the page still renders in full.
+
+> This was found the hard way: the first version used the observer alone, and content stayed permanently at `opacity: 0` in a tab that was not painting.
+
+---
+
 ## Price adjustments
 
 Products carry a list of rules — **offsets, discounts and tax** — each either a **percent of price** or a **fixed amount**, and each either bounded by a date range or permanent until an admin disables or deletes it. Admins manage them inline in the product form, with a live breakdown underneath.
@@ -314,6 +359,6 @@ Products and customers both carry an `active` flag that admins toggle from the r
 
 ## Current status
 
-**Working:** everything above — i18n and RTL, local fonts, auth with localStorage persistence, the permission model, the axios layer, the storefront, login/register, the admin dashboard, all seven admin CRUD sections, all four customer account pages, product image galleries with a selectable default, profile photo upload, enable/disable for products and customers, and price adjustments with a tested pricing engine.
+**Working:** everything above — i18n and RTL, local fonts, auth with localStorage persistence, the permission model, the axios layer, the storefront, login/register, the admin dashboard, all seven admin CRUD sections, all four customer account pages, product image galleries with a selectable default, profile photo upload, enable/disable for products and customers, price adjustments with a tested pricing engine, and the visual layer described above.
 
 **Next phase:** swap the mock repositories for the axios client. `src/lib/api/endpoints.ts` already names every route, and the `Repository<T>` interface is the contract the API has to satisfy — `list` maps onto `GET /resource?q=&sort=&page=`, and `create` / `update` / `remove` onto POST / PATCH / DELETE.

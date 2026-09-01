@@ -14,7 +14,7 @@ export function FeaturedProducts() {
         {Array.from({ length: 3 }).map((_, i) => (
           <div
             key={i}
-            className="h-64 animate-pulse rounded-2xl bg-slate-200"
+            className="skeleton h-64 rounded-2xl"
             aria-hidden
           />
         ))}
@@ -32,8 +32,14 @@ export function FeaturedProducts() {
 
   return (
     <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
-      {(data ?? []).map((p) => (
-        <ProductCard key={p.id} product={p} />
+      {(data ?? []).map((p, i) => (
+        <div
+          key={p.id}
+          className="animate-fade-up"
+          style={{ animationDelay: `${i * 80}ms` }}
+        >
+          <ProductCard product={p} />
+        </div>
       ))}
     </div>
   );

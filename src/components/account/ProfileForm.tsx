@@ -158,12 +158,12 @@ export function ProfileForm() {
                 <button
                   type="submit"
                   disabled={pending}
-                  className="rounded-lg bg-indigo-600 px-5 py-2.5 text-sm font-semibold text-white hover:bg-indigo-700 disabled:cursor-not-allowed disabled:opacity-60"
+                  className="btn-glow rounded-xl bg-gradient-to-r from-indigo-600 to-violet-600 px-6 py-2.5 text-sm font-bold text-white disabled:cursor-not-allowed disabled:opacity-60"
                 >
                   {pending ? t("common.loading") : t("common.save")}
                 </button>
                 {saved && (
-                  <p role="status" className="text-sm font-medium text-emerald-600">
+                  <p role="status" className="animate-fade-in text-sm font-medium text-emerald-600">
                     {t("account.profileSaved")}
                   </p>
                 )}
@@ -176,12 +176,12 @@ export function ProfileForm() {
           <h2 className="font-bold text-slate-900">
             {t("account.profileCompletion")}
           </h2>
-          <p className="mt-3 text-3xl font-bold text-indigo-600">
+          <p className="mt-3 text-4xl font-extrabold tracking-tight text-indigo-600">
             {formatPercent(completion, locale, 0)}
           </p>
           <div className="mt-3 h-2 overflow-hidden rounded-full bg-slate-100">
             <div
-              className="h-full rounded-full bg-indigo-500 transition-[width]"
+              className="h-full rounded-full bg-gradient-to-r from-indigo-500 to-fuchsia-500 transition-[width] duration-700 ease-out"
               style={{ width: `${completion * 100}%` }}
             />
           </div>

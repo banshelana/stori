@@ -24,7 +24,7 @@ export function ProductGrid() {
         {Array.from({ length: 6 }).map((_, i) => (
           <div
             key={i}
-            className="h-64 animate-pulse rounded-2xl bg-slate-200"
+            className="skeleton h-64 rounded-2xl"
             aria-hidden
           />
         ))}
@@ -45,8 +45,14 @@ export function ProductGrid() {
 
   return (
     <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
-      {data.map((product) => (
-        <ProductCard key={product.id} product={product} />
+      {data.map((product, i) => (
+        <div
+          key={product.id}
+          className="animate-fade-up"
+          style={{ animationDelay: `${Math.min(i, 8) * 60}ms` }}
+        >
+          <ProductCard product={product} />
+        </div>
       ))}
     </div>
   );

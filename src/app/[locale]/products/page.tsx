@@ -25,10 +25,11 @@ export default async function ProductsPage({
   return (
     <SiteShell>
       <main className="mx-auto max-w-6xl px-4 py-8">
-        <div className="mb-6">
-          <h1 className="text-3xl font-bold text-slate-900">
+        <div className="animate-fade-up mb-8">
+          <h1 className="text-3xl font-extrabold tracking-tight text-slate-900 sm:text-4xl">
             {translate(dict, "nav.products")}
           </h1>
+          <div className="mt-3 h-1 w-16 rounded-full bg-gradient-to-r from-indigo-600 to-fuchsia-500" />
         </div>
 
         {/* Both children read the query string, which opts them out of
@@ -38,7 +39,7 @@ export default async function ProductsPage({
             <Suspense
               fallback={
                 <div
-                  className="h-72 animate-pulse rounded-2xl bg-slate-200"
+                  className="skeleton h-72 rounded-2xl"
                   aria-hidden
                 />
               }
@@ -53,7 +54,7 @@ export default async function ProductsPage({
                 {Array.from({ length: 6 }).map((_, i) => (
                   <div
                     key={i}
-                    className="h-64 animate-pulse rounded-2xl bg-slate-200"
+                    className="skeleton h-64 rounded-2xl"
                     aria-hidden
                   />
                 ))}

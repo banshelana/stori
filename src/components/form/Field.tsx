@@ -25,10 +25,10 @@ function useFieldIds(error?: string, hint?: string) {
 }
 
 function controlClass(error?: string, extra = "") {
-  return `w-full rounded-lg border bg-slate-50 px-3 py-2.5 text-sm outline-none transition-colors focus:bg-white disabled:cursor-not-allowed disabled:opacity-60 ${
+  return `w-full rounded-xl border bg-slate-50 px-3.5 py-2.5 text-sm outline-none transition-[border-color,box-shadow,background-color] duration-200 focus:bg-white disabled:cursor-not-allowed disabled:opacity-60 ${
     error
-      ? "border-rose-300 focus:border-rose-500"
-      : "border-slate-200 focus:border-indigo-500"
+      ? "border-rose-300 focus:border-rose-500 focus:shadow-[0_0_0_3px_rgb(244_63_94/0.12)]"
+      : "border-slate-200 focus:border-indigo-500 focus:shadow-[0_0_0_3px_rgb(99_102_241/0.14)]"
   } ${extra}`;
 }
 
@@ -69,7 +69,10 @@ function Messages({
 }) {
   if (error) {
     return (
-      <p id={errorId} className="mt-1 text-xs text-rose-600">
+      <p
+        id={errorId}
+        className="animate-fade-in mt-1 text-xs font-medium text-rose-600"
+      >
         {error}
       </p>
     );

@@ -79,8 +79,8 @@ export function RegisterForm() {
   }
 
   return (
-    <div className="w-full max-w-md rounded-2xl border border-slate-200 bg-white p-8 shadow-sm">
-      <h1 className="text-2xl font-bold text-slate-900">
+    <div className="rounded-2xl border border-slate-200 bg-white p-8 shadow-[0_10px_40px_-20px_rgb(15_23_42/0.35)]">
+      <h1 className="text-2xl font-bold tracking-tight text-slate-900">
         {t("auth.registerTitle")}
       </h1>
       <p className="mt-1 text-sm text-slate-500">{t("auth.registerSubtitle")}</p>
@@ -135,7 +135,7 @@ export function RegisterForm() {
         <button
           type="submit"
           disabled={pending}
-          className="w-full rounded-lg bg-indigo-600 py-3 text-sm font-semibold text-white transition-colors hover:bg-indigo-700 disabled:cursor-not-allowed disabled:opacity-60"
+          className="btn-glow w-full rounded-xl bg-gradient-to-r from-indigo-600 to-violet-600 py-3.5 text-sm font-bold text-white disabled:cursor-not-allowed disabled:opacity-60"
         >
           {pending ? t("common.loading") : t("auth.submitRegister")}
         </button>

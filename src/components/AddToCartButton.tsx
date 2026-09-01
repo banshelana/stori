@@ -42,12 +42,12 @@ export function AddToCartButton({
       type="button"
       onClick={handleClick}
       disabled={disabled}
-      className={`rounded-lg px-4 py-2 text-sm font-semibold transition-colors ${
+      className={`rounded-xl px-4 py-2 text-sm font-semibold transition-all duration-200 ${
         disabled
           ? "cursor-not-allowed bg-slate-200 text-slate-400"
           : added
-            ? "bg-emerald-600 text-white"
-            : "bg-indigo-600 text-white hover:bg-indigo-700"
+            ? "scale-105 bg-emerald-600 text-white"
+            : "btn-glow bg-gradient-to-r from-indigo-600 to-violet-600 text-white"
       } ${className}`}
     >
       {product.stock <= 0

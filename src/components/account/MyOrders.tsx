@@ -83,9 +83,9 @@ export function MyOrders() {
               type="button"
               aria-selected={active}
               onClick={() => setTab(value)}
-              className={`flex shrink-0 items-center gap-2 rounded-full px-4 py-2 text-sm font-medium transition-colors ${
+              className={`flex shrink-0 items-center gap-2 rounded-full px-4 py-2 text-sm font-medium transition-all duration-200 ${
                 active
-                  ? "bg-indigo-600 text-white"
+                  ? "bg-gradient-to-r from-indigo-600 to-violet-600 text-white shadow-md"
                   : "bg-white text-slate-600 hover:bg-slate-100"
               }`}
             >
@@ -109,7 +109,7 @@ export function MyOrders() {
       ) : (
         <div className="space-y-4">
           {visible.map((order) => (
-            <Card key={order.id}>
+            <Card key={order.id} className="card-lift">
               <div className="flex flex-wrap items-start justify-between gap-3">
                 <div>
                   <p className="font-bold text-slate-900">

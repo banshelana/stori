@@ -90,7 +90,12 @@
     "unauthorizedTitle": "You don't have access to this page",
     "unauthorizedBody": "Your account doesn't carry the permission required to view this section.",
     "signInRequired": "Please sign in to continue.",
-    "accountDisabled": "This account has been disabled. Please contact support."
+    "accountDisabled": "This account has been disabled. Please contact support.",
+    "brandPitch": "One account for the whole store",
+    "brandBody": "Track orders, save addresses and keep your details in one place — in English or Persian, whenever you like.",
+    "perkOrders": "Every order in one timeline",
+    "perkAddresses": "Saved addresses, ready at checkout",
+    "perkBilingual": "Switch language without losing your place"
   },
   "roles": {
     "admin": "Admin",
@@ -299,12 +304,29 @@
   },
   "home": {
     "heroTitle": "Gadgets, gear & goodies for your everyday.",
-    "heroBody": "A demo storefront built with Next.js. Browse by category or filter the catalog from the URL — and switch the data source from the header at any time.",
+    "heroBody": "A demo storefront built with Next.js — bilingual, role-aware, and fully offline. Browse by category, filter from the URL, and switch the data source whenever you like.",
     "shopAll": "Shop all products",
     "topRated": "Top rated",
     "shopByCategory": "Shop by category",
     "featured": "Featured",
-    "viewAll": "View all"
+    "viewAll": "View all",
+    "heroEyebrow": "New season, new gear",
+    "statProducts": "Products",
+    "statCustomers": "Happy customers",
+    "statRating": "Average rating",
+    "statDelivery": "Delivery",
+    "statDeliveryValue": "48h",
+    "browseCategory": "Browse",
+    "featuresTitle": "Built to be pleasant to shop",
+    "featuresBody": "The parts nobody notices until they go wrong.",
+    "featureShipping": "Free delivery",
+    "featureShippingBody": "On every order, with no minimum basket.",
+    "featureReturns": "30-day returns",
+    "featureReturnsBody": "Changed your mind? Send it back, no questions.",
+    "featureSupport": "Real support",
+    "featureSupportBody": "Talk to a person, in your own language.",
+    "ctaTitle": "Ready to look around?",
+    "ctaBody": "The whole catalog is a click away."
   },
   "review": {
     "body": "Review",

@@ -55,13 +55,15 @@ export function StatCard({
   const up = (change ?? 0) >= 0;
 
   return (
-    <Card>
+    <Card className="card-lift">
       <div className="flex items-start justify-between gap-3">
         <div className="min-w-0">
           <p className="truncate text-sm font-medium text-slate-500">{label}</p>
-          <p className="mt-2 text-2xl font-bold text-slate-900">{value}</p>
+          <p className="mt-2 text-2xl font-bold tracking-tight text-slate-900">
+            {value}
+          </p>
         </div>
-        <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-indigo-50 text-indigo-600">
+        <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-indigo-500 to-violet-600 text-white shadow-sm">
           <Icon name={icon} />
         </span>
       </div>
@@ -135,7 +137,7 @@ export function EmptyState({
   action?: React.ReactNode;
 }) {
   return (
-    <div className="rounded-2xl border border-dashed border-slate-300 bg-white px-6 py-16 text-center">
+    <div className="animate-scale-in rounded-2xl border border-dashed border-slate-300 bg-white px-6 py-16 text-center">
       <p className="text-lg font-semibold text-slate-700">{title}</p>
       {hint && <p className="mt-1 text-sm text-slate-500">{hint}</p>}
       {action && <div className="mt-6">{action}</div>}
@@ -149,7 +151,7 @@ export function TableSkeleton({ rows = 5 }: { rows?: number }) {
       {Array.from({ length: rows }).map((_, i) => (
         <div
           key={i}
-          className="h-14 animate-pulse rounded-xl bg-slate-200"
+          className="skeleton h-14 rounded-xl"
           aria-hidden
         />
       ))}

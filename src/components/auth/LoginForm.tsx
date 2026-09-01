@@ -71,9 +71,11 @@ function LoginFormInner() {
   }
 
   return (
-    <div className="w-full max-w-md">
-      <div className="rounded-2xl border border-slate-200 bg-white p-8 shadow-sm">
-        <h1 className="text-2xl font-bold text-slate-900">{t("auth.loginTitle")}</h1>
+    <div>
+      <div className="rounded-2xl border border-slate-200 bg-white p-8 shadow-[0_10px_40px_-20px_rgb(15_23_42/0.35)]">
+        <h1 className="text-2xl font-bold tracking-tight text-slate-900">
+          {t("auth.loginTitle")}
+        </h1>
         <p className="mt-1 text-sm text-slate-500">{t("auth.loginSubtitle")}</p>
 
         <form onSubmit={handleSubmit} className="mt-6 space-y-4" noValidate>
@@ -113,7 +115,7 @@ function LoginFormInner() {
           <button
             type="submit"
             disabled={pending}
-            className="w-full rounded-lg bg-indigo-600 py-3 text-sm font-semibold text-white transition-colors hover:bg-indigo-700 disabled:cursor-not-allowed disabled:opacity-60"
+            className="btn-glow w-full rounded-xl bg-gradient-to-r from-indigo-600 to-violet-600 py-3.5 text-sm font-bold text-white disabled:cursor-not-allowed disabled:opacity-60"
           >
             {pending ? t("common.loading") : t("auth.submitLogin")}
           </button>
@@ -132,7 +134,7 @@ function LoginFormInner() {
 
       {/* Every sub-role is one click away so the permission model is
           walkable without hand-typing credentials. */}
-      <details className="mt-4 rounded-xl border border-slate-200 bg-white p-4 text-sm">
+      <details className="animate-fade-up mt-4 rounded-xl border border-slate-200 bg-white p-4 text-sm" style={{ animationDelay: "220ms" }}>
         <summary className="cursor-pointer font-semibold text-slate-700">
           {t("auth.demoAccounts")}
         </summary>
@@ -164,7 +166,7 @@ function LoginFormInner() {
 export function LoginForm() {
   // useSearchParams needs a boundary for this page to stay static.
   return (
-    <Suspense fallback={<div className="h-96 w-full max-w-md animate-pulse rounded-2xl bg-slate-200" />}>
+      <Suspense fallback={<div className="skeleton h-96 w-full rounded-2xl" />}>
       <LoginFormInner />
     </Suspense>
   );

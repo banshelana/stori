@@ -120,7 +120,10 @@ export function DataTable<T>({
 
           <tbody className="divide-y divide-slate-100">
             {rows.map((row) => (
-              <tr key={rowKey(row)} className="hover:bg-slate-50">
+              <tr
+                key={rowKey(row)}
+                className="transition-colors duration-150 hover:bg-indigo-50/40"
+              >
                 {columns.map((col) => (
                   <td
                     key={col.key}
@@ -144,7 +147,7 @@ export function DataTable<T>({
                             onClick={() => action.onClick(row)}
                             title={action.label}
                             aria-label={action.label}
-                            className={`rounded-lg p-2 transition-colors ${
+                            className={`rounded-lg p-2 transition-all duration-200 hover:scale-110 ${
                               action.tone === "danger"
                                 ? "text-slate-400 hover:bg-rose-50 hover:text-rose-600"
                                 : "text-slate-400 hover:bg-slate-100 hover:text-slate-700"
