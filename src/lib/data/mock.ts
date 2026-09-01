@@ -1,5 +1,6 @@
 import { DEFAULT_LOCALE, type Locale } from "@/i18n/config";
 import { allTranslations } from "@/i18n/localized";
+import { effectivePrice } from "@/lib/pricing";
 import type { Category, Product, SearchFilters } from "@/lib/types";
 
 // A small regional storefront for demo purposes. All prices in EUR cents.
@@ -25,6 +26,28 @@ export const MOCK_PRODUCTS: Product[] = [
     images: [{ id: "img-headphones", src: "/images/headphones.svg" }],
     primaryImageId: "img-headphones",
     active: true,
+    adjustments: [
+      {
+        id: "adj-vat-001",
+        kind: "tax",
+        mode: "percent",
+        value: 9,
+        label: "VAT",
+        startsAt: null,
+        endsAt: null,
+        active: true,
+      },
+      {
+        id: "adj-sale-001",
+        kind: "discount",
+        mode: "percent",
+        value: 15,
+        label: "Autumn sale",
+        startsAt: "2026-08-01",
+        endsAt: "2026-12-31",
+        active: true,
+      },
+    ],
     categoryId: "cat-1",
     tags: ["audio", "bluetooth", "noise-cancelling"],
     rating: 4.7,
@@ -46,6 +69,7 @@ export const MOCK_PRODUCTS: Product[] = [
     images: [{ id: "img-earbuds", src: "/images/earbuds.svg" }],
     primaryImageId: "img-earbuds",
     active: true,
+    adjustments: [],
     categoryId: "cat-1",
     tags: ["audio", "bluetooth", "wireless"],
     rating: 4.4,
@@ -67,6 +91,7 @@ export const MOCK_PRODUCTS: Product[] = [
     images: [{ id: "img-smartwatch", src: "/images/smartwatch.svg" }],
     primaryImageId: "img-smartwatch",
     active: true,
+    adjustments: [],
     categoryId: "cat-2",
     tags: ["wearable", "fitness", "gps"],
     rating: 4.5,
@@ -88,6 +113,7 @@ export const MOCK_PRODUCTS: Product[] = [
     images: [{ id: "img-fitness-band", src: "/images/fitness-band.svg" }],
     primaryImageId: "img-fitness-band",
     active: true,
+    adjustments: [],
     categoryId: "cat-2",
     tags: ["wearable", "fitness"],
     rating: 4.2,
@@ -109,6 +135,18 @@ export const MOCK_PRODUCTS: Product[] = [
     images: [{ id: "img-keyboard", src: "/images/keyboard.svg" }],
     primaryImageId: "img-keyboard",
     active: true,
+    adjustments: [
+      {
+        id: "adj-fee-001",
+        kind: "offset",
+        mode: "amount",
+        value: 500,
+        label: "Handling fee",
+        startsAt: null,
+        endsAt: null,
+        active: true,
+      },
+    ],
     categoryId: "cat-3",
     tags: ["desk", "keyboard", "mechanical"],
     rating: 4.9,
@@ -130,6 +168,7 @@ export const MOCK_PRODUCTS: Product[] = [
     images: [{ id: "img-speaker", src: "/images/speaker.svg" }],
     primaryImageId: "img-speaker",
     active: true,
+    adjustments: [],
     categoryId: "cat-3",
     tags: ["desk", "audio"],
     rating: 4.3,
@@ -151,6 +190,7 @@ export const MOCK_PRODUCTS: Product[] = [
     images: [{ id: "img-lamp", src: "/images/lamp.svg" }],
     primaryImageId: "img-lamp",
     active: true,
+    adjustments: [],
     categoryId: "cat-4",
     tags: ["home", "lighting"],
     rating: 4.6,
@@ -172,6 +212,7 @@ export const MOCK_PRODUCTS: Product[] = [
     images: [{ id: "img-mug", src: "/images/mug.svg" }],
     primaryImageId: "img-mug",
     active: true,
+    adjustments: [],
     categoryId: "cat-4",
     tags: ["home", "kitchen"],
     rating: 4.8,
@@ -229,10 +270,10 @@ export async function mockList(
 
   switch (filters.sort) {
     case "price-asc":
-      items.sort((a, b) => a.price - b.price);
+      items.sort((a, b) => effectivePrice(a) - effectivePrice(b));
       break;
     case "price-desc":
-      items.sort((a, b) => b.price - a.price);
+      items.sort((a, b) => effectivePrice(b) - effectivePrice(a));
       break;
     case "name-asc":
       // Persian collates differently from Latin, so sort in the caller's

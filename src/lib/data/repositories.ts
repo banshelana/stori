@@ -13,6 +13,7 @@ import {
   type SmsMessage,
 } from "@/lib/data/commerce";
 import { MOCK_PRODUCTS } from "@/lib/data/mock";
+import { effectivePrice } from "@/lib/pricing";
 import { MOCK_USERS, type MockUser } from "@/lib/data/users";
 import type { Product } from "@/lib/types";
 
@@ -47,7 +48,7 @@ export const productsRepo = createRepository<Product>({
   ],
   sorters: {
     title: (p) => localized(p.title, "en"),
-    price: (p) => p.price,
+    price: (p) => effectivePrice(p),
     stock: (p) => p.stock,
     rating: (p) => p.rating,
     createdAt: (p) => p.createdAt,

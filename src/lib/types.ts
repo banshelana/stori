@@ -8,6 +8,36 @@ export interface Category {
   slug: string;
 }
 
+export const ADJUSTMENT_KINDS = ["offset", "discount", "tax"] as const;
+export type AdjustmentKind = (typeof ADJUSTMENT_KINDS)[number];
+
+export const ADJUSTMENT_MODES = ["percent", "amount"] as const;
+export type AdjustmentMode = (typeof ADJUSTMENT_MODES)[number];
+
+/**
+ * A price rule attached to a product. See src/lib/pricing.ts for the
+ * order in which offsets, discounts and tax are applied.
+ */
+export interface PriceAdjustment {
+  id: string;
+  kind: AdjustmentKind;
+  mode: AdjustmentMode;
+  /**
+   * Percent mode: a percentage (15 means 15%).
+   * Amount mode: minor units, same currency as the product.
+   * Offsets may be negative (a correction down); discounts and tax are
+   * magnitudes, with their direction implied by the kind.
+   */
+  value: number;
+  /** Admin-facing note, e.g. "Summer sale" or "VAT". */
+  label?: string;
+  /** YYYY-MM-DD, inclusive. Null means unbounded on that side. */
+  startsAt: string | null;
+  endsAt: string | null;
+  /** Disabled rules are kept but stop applying — the off switch. */
+  active: boolean;
+}
+
 /** One uploaded or bundled image belonging to a product. */
 export interface ProductImage {
   id: string;
@@ -32,6 +62,8 @@ export interface Product {
   primaryImageId: string | null;
   /** Inactive products stay in the admin but disappear from the storefront. */
   active: boolean;
+  /** Offsets, discounts and tax; empty means the base price stands. */
+  adjustments: PriceAdjustment[];
   categoryId: string;
   tags: string[];
   rating: number; // 0..5

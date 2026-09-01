@@ -8,6 +8,7 @@ import {
   TextField,
 } from "@/components/form/Field";
 import { GalleryUpload } from "@/components/form/ImageUpload";
+import { AdjustmentsEditor } from "@/components/admin/AdjustmentsEditor";
 import { DataTable, Pagination, type Column } from "@/components/panel/DataTable";
 import { FilterToolbar, NewButton } from "@/components/panel/FilterToolbar";
 import { ConfirmDialog, Modal } from "@/components/panel/Modal";
@@ -20,7 +21,8 @@ import { MOCK_CATEGORIES } from "@/lib/data/mock";
 import { productsRepo } from "@/lib/data/repositories";
 import { formatNumber, formatPrice } from "@/lib/format";
 import { primaryImageSrc } from "@/lib/product";
-import type { Product, ProductImage } from "@/lib/types";
+import type { PriceAdjustment, Product, ProductImage } from "@/lib/types";
+import { effectivePrice, strikeThroughPrice } from "@/lib/pricing";
 import { useFormErrors } from "@/lib/useFormErrors";
 import { useResourceList } from "@/lib/useResourceList";
 import { toAsciiDigits, validateRequired } from "@/lib/validation";
@@ -35,6 +37,7 @@ interface FormState {
   images: ProductImage[];
   primaryImageId: string | null;
   active: boolean;
+  adjustments: PriceAdjustment[];
   categoryId: string;
   tags: string;
   stock: string;
@@ -52,6 +55,7 @@ const BLANK: FormState = {
   images: [],
   primaryImageId: null,
   active: true,
+  adjustments: [],
   categoryId: MOCK_CATEGORIES[0]?.id ?? "",
   tags: "",
   stock: "0",
@@ -96,6 +100,7 @@ export function ProductsSection() {
         images: form.images,
         primaryImageId: form.primaryImageId,
         active: form.active,
+        adjustments: form.adjustments,
         categoryId: form.categoryId,
         tags: form.tags
           .split(",")
@@ -171,11 +176,21 @@ export function ProductsSection() {
       header: t("product.price"),
       sortable: true,
       align: "end",
-      render: (p) => (
-        <span className="font-semibold text-slate-900">
-          {formatPrice(p.price, p.currency, locale)}
-        </span>
-      ),
+      render: (p) => {
+        const was = strikeThroughPrice(p);
+        return (
+          <span className="inline-flex flex-col items-end">
+            <span className="font-semibold text-slate-900">
+              {formatPrice(effectivePrice(p), p.currency, locale)}
+            </span>
+            {was !== null && (
+              <span className="text-xs text-slate-400 line-through">
+                {formatPrice(was, p.currency, locale)}
+              </span>
+            )}
+          </span>
+        );
+      },
     },
     {
       key: "stock",
@@ -368,6 +383,7 @@ function ProductForm({
           images: [...initial.images],
           primaryImageId: initial.primaryImageId,
           active: initial.active,
+          adjustments: (initial.adjustments ?? []).map((a) => ({ ...a })),
           categoryId: initial.categoryId,
           tags: initial.tags.join(", "),
           stock: String(initial.stock),
@@ -536,6 +552,17 @@ function ProductForm({
             inputMode="numeric"
             value={form.rating}
             onChange={(v) => set("rating", v)}
+          />
+        </div>
+
+        <div className="rounded-xl border border-slate-200 bg-slate-50/60 p-4">
+          <AdjustmentsEditor
+            adjustments={form.adjustments}
+            basePrice={Number(toAsciiDigits(form.price)) || 0}
+            currency={form.currency}
+            onChange={(adjustments) =>
+              setForm((prev) => ({ ...prev, adjustments }))
+            }
           />
         </div>
 

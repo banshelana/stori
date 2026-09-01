@@ -11,6 +11,7 @@ import {
 import { useI18n } from "@/i18n/I18nProvider";
 import { useDataSource } from "@/lib/data/source-context";
 import { useCart } from "@/lib/cart-context";
+import { effectivePrice } from "@/lib/pricing";
 import type { Category, Product, SearchFilters } from "@/lib/types";
 
 function useSourceData<T>(
@@ -138,7 +139,7 @@ export function useCartLines(): {
     });
 
     const subtotal = lines.reduce(
-      (sum, line) => sum + line.quantity * line.product.price,
+      (sum, line) => sum + line.quantity * effectivePrice(line.product),
       0
     );
 

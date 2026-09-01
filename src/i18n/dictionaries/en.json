@@ -346,5 +346,30 @@
       "SIZE": "That file is too large.",
       "DECODE": "That image could not be read."
     }
+  },
+  "adjust": {
+    "title": "Price adjustments",
+    "orderHint": "Applied in order: offsets, then discounts, then tax.",
+    "kind": "Type",
+    "mode": "Basis",
+    "percent": "Percent",
+    "amount": "Amount",
+    "label": "Label",
+    "labelPlaceholder": "e.g. Autumn sale, VAT",
+    "startsAt": "Starts",
+    "endsAt": "Ends",
+    "permanent": "Permanent",
+    "notInEffect": "Not in effect",
+    "basePrice": "Base price",
+    "finalPrice": "Final price",
+    "kinds": {
+      "offset": "Offset",
+      "discount": "Discount",
+      "tax": "Tax"
+    },
+    "modes": {
+      "percent": "% of price",
+      "amount": "Fixed amount"
+    }
   }
 }

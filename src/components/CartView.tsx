@@ -8,6 +8,7 @@ import { useCart } from "@/lib/cart-context";
 import { formatNumber, formatPrice } from "@/lib/format";
 import { useCartLines } from "@/lib/hooks";
 import { primaryImageSrc } from "@/lib/product";
+import { effectivePrice } from "@/lib/pricing";
 
 export function CartView() {
   const { items, setQuantity, removeItem, clear, count, hydrated } = useCart();
@@ -94,7 +95,11 @@ export function CartView() {
                   {localized(product.title, locale)}
                 </Link>
                 <p className="text-sm text-slate-500">
-                  {formatPrice(product.price, product.currency, locale)}{" "}
+                  {formatPrice(
+                    effectivePrice(product),
+                    product.currency,
+                    locale
+                  )}{" "}
                   {t("cart.each")}
                 </p>
               </div>
@@ -123,7 +128,11 @@ export function CartView() {
               </div>
 
               <div className="w-24 text-end font-semibold">
-                {formatPrice(quantity * product.price, product.currency, locale)}
+                {formatPrice(
+                  quantity * effectivePrice(product),
+                  product.currency,
+                  locale
+                )}
               </div>
 
               <button

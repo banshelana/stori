@@ -251,6 +251,56 @@ Up to 6 images per product. Change `max` on `GalleryUpload` to adjust.
 
 ---
 
+## Price adjustments
+
+Products carry a list of rules — **offsets, discounts and tax** — each either a **percent of price** or a **fixed amount**, and each either bounded by a date range or permanent until an admin disables or deletes it. Admins manage them inline in the product form, with a live breakdown underneath.
+
+### Order of operations
+
+This is the part that has to be right, and it is enforced in one place, [`src/lib/pricing.ts`](src/lib/pricing.ts):
+
+```
+  base price
++ offsets       signed — a surcharge, or a correction down
+- discounts     capped, so the running total never goes negative
++ tax           computed on the POST-discount amount
+= total
+```
+
+**Tax is charged on what the customer actually pays, not on the list price.** A €199 product with a 15% sale and 9% VAT costs €184.37 — the tax is €15.22 on the discounted €169.15, not €17.91 on the list price.
+
+**Percents stack additively within a stage, not compounding.** Two 10% discounts take 20% off, not 19%. Compounding surprises people who stack a sale on a coupon.
+
+**Rounding** happens per adjustment in integer minor units, so the breakdown lines always sum to the total exactly. Discounts are capped at the running subtotal, so no combination can produce a negative price.
+
+**Declaration order does not matter** — rules are sorted into offset → discount → tax before pricing, so the array order in the form has no effect on the result.
+
+### Date windows
+
+`startsAt` and `endsAt` are `YYYY-MM-DD` strings, **inclusive on both ends**. A null bound is unbounded, so a rule with neither date runs permanently. Dates are compared as strings against the local calendar date, which sorts correctly and sidesteps timezone arithmetic — an adjustment ending "today" stays live through the merchant's working day rather than expiring at UTC midnight.
+
+`active` is a separate manual switch: a disabled rule is kept but stops applying regardless of its dates.
+
+### What reads the effective price
+
+`effectivePrice(product)` is the single source of truth, used by the storefront `Price` component, the catalog's price sorting, the cart, checkout, and the admin table. `strikeThroughPrice(product)` returns the figure to show struck through — it prefers a live reduction from adjustments over the static `compareAtPrice`, so a current sale is never hidden behind a stale marketing number.
+
+The storefront deliberately shows **one number**, not a tax line — the breakdown stays admin-facing.
+
+Order lines keep a `unitPrice` snapshot taken at purchase time, so changing a rule never rewrites the price on a past order.
+
+### Tests
+
+The pricing engine is pure and covered by [`src/lib/pricing.test.ts`](src/lib/pricing.test.ts) — 20 cases over the order of operations, additive stacking, zero-clamping, rounding, and the date-window edges. It uses Node's built-in test runner with no dependencies:
+
+```bash
+npm test
+```
+
+> **Known gap:** the date fields use the native `<input type="date">`, which renders a Gregorian picker in every locale. Persian admins will want a Jalali picker; that is a separate component and is not built here.
+
+---
+
 ## Enable / disable
 
 Products and customers both carry an `active` flag that admins toggle from the row actions (the power icon), with a status column and a status filter in each table.
@@ -264,6 +314,6 @@ Products and customers both carry an `active` flag that admins toggle from the r
 
 ## Current status
 
-**Working:** everything above — i18n and RTL, local fonts, auth with localStorage persistence, the permission model, the axios layer, the storefront, login/register, the admin dashboard, all seven admin CRUD sections, all four customer account pages, product image galleries with a selectable default, profile photo upload, and enable/disable for products and customers.
+**Working:** everything above — i18n and RTL, local fonts, auth with localStorage persistence, the permission model, the axios layer, the storefront, login/register, the admin dashboard, all seven admin CRUD sections, all four customer account pages, product image galleries with a selectable default, profile photo upload, enable/disable for products and customers, and price adjustments with a tested pricing engine.
 
 **Next phase:** swap the mock repositories for the axios client. `src/lib/api/endpoints.ts` already names every route, and the `Repository<T>` interface is the contract the API has to satisfy — `list` maps onto `GET /resource?q=&sort=&page=`, and `create` / `update` / `remove` onto POST / PATCH / DELETE.

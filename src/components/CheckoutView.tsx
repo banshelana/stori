@@ -9,6 +9,7 @@ import { useLocaleHref } from "@/i18n/navigation";
 import { useCart } from "@/lib/cart-context";
 import { formatNumber, formatPrice } from "@/lib/format";
 import { useCartLines } from "@/lib/hooks";
+import { effectivePrice } from "@/lib/pricing";
 
 export function CheckoutView() {
   const router = useRouter();
@@ -128,7 +129,11 @@ export function CheckoutView() {
                 {localized(product.title, locale)} &times; {formatNumber(quantity, locale)}
               </span>
               <span className="shrink-0 font-medium">
-                {formatPrice(quantity * product.price, product.currency, locale)}
+                {formatPrice(
+                  quantity * effectivePrice(product),
+                  product.currency,
+                  locale
+                )}
               </span>
             </li>
           ))}
