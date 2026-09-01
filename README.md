@@ -25,7 +25,7 @@ Sign in at `/en/login` (the login screen lists these; click one to fill the form
 | 09120000004 | `customer123` | Customer | Regular |
 | 09120000005 | `vip123` | Customer | VIP |
 
-Admins land on `/admin`, customers on `/account/profile`.
+Everyone lands on the storefront home after signing in. Your own area — the admin panel for admins, the account pages for customers — is one click away in the user menu at the top right.
 
 ---
 
@@ -99,11 +99,18 @@ Two roles, each with sub-roles. **Guards and menus check permissions, never role
 | Customer | `regular` | Profile, orders, payments, addresses |
 | Customer | `vip` | Same as regular (a hook for perks) |
 
+### User menu
+
+`src/components/UserMenu.tsx` is mounted in **both** chromes — the storefront header and the admin/account panel header — so profile and sign-out are reachable from every page. Its entries are permission-gated like everything else: an admin sees *Admin panel*, a customer sees *Profile / My orders / My payments / Addresses*. Pass `showRole` in the panel chrome to show the sub-role beside the avatar.
+
+`panelPathFor(role)` names a user's own area. It is what the menu links to and what the "no access" screen falls back to — **not** the post-login landing page, which is always the storefront home.
+
 ```
 src/lib/auth/types.ts        Role, SubRole, Permission, User, Session
 src/lib/auth/permissions.ts  ROLE_PERMISSIONS — the single source of truth
 src/lib/auth/auth-context.tsx  useAuth(): user, ready, signIn/signUp/signOut, can()
 src/lib/auth/Guard.tsx       <Guard permission="…"> and <Can permission="…">
+src/components/UserMenu.tsx  Permission-gated menu, mounted in both chromes
 src/lib/nav.ts               ADMIN_NAV / ACCOUNT_NAV, each item carrying a permission
 ```
 

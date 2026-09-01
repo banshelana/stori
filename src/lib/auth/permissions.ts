@@ -84,7 +84,11 @@ export function hasAnyPermission(
   return permissions.some((p) => granted.includes(p));
 }
 
-/** Where a user lands after signing in. */
-export function homePathFor(role: Role): string {
+/**
+ * The signed-in area a user belongs to — their panel, not their landing
+ * page. Sign-in sends everyone to the storefront home; this is what the
+ * user menu links to and what the "no access" screen falls back to.
+ */
+export function panelPathFor(role: Role): string {
   return role === "admin" ? "/admin" : "/account/profile";
 }

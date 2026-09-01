@@ -7,7 +7,6 @@ import { TextField } from "@/components/form/Field";
 import { useI18n } from "@/i18n/I18nProvider";
 import { localePath } from "@/i18n/paths";
 import { useAuth } from "@/lib/auth/auth-context";
-import { homePathFor } from "@/lib/auth/permissions";
 import { useFormErrors } from "@/lib/useFormErrors";
 import {
   normalizeMobile,
@@ -65,11 +64,11 @@ export function RegisterForm() {
     if (Object.keys(errors).length > 0) return;
 
     try {
-      const user = await signUp({
+      await signUp({
         ...form,
         mobile: normalizeMobile(form.mobile),
       });
-      router.replace(localePath(locale, homePathFor(user.role)));
+      router.replace(localePath(locale, "/"));
     } catch (err) {
       setError(
         err instanceof Error && err.message === "MOBILE_TAKEN"

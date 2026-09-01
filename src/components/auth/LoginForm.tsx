@@ -8,7 +8,7 @@ import { useFormErrors } from "@/lib/useFormErrors";
 import { useI18n } from "@/i18n/I18nProvider";
 import { localePath } from "@/i18n/paths";
 import { useAuth } from "@/lib/auth/auth-context";
-import { hasPermission, homePathFor } from "@/lib/auth/permissions";
+import { hasPermission } from "@/lib/auth/permissions";
 import { permissionForPath } from "@/lib/nav";
 import { DEMO_ACCOUNTS } from "@/lib/data/users";
 import { normalizeMobile, validateMobile } from "@/lib/validation";
@@ -54,9 +54,10 @@ function LoginFormInner() {
       const reachable =
         isRelative && (!required || hasPermission(user.subRole, required));
 
-      router.replace(
-        localePath(locale, reachable ? next! : homePathFor(user.role))
-      );
+      // Everyone lands on the storefront home; their panel is one click
+      // away in the user menu. A guard's `next` still wins when the user
+      // can actually reach it.
+      router.replace(localePath(locale, reachable ? next! : "/"));
     } catch (err) {
       // A disabled account is a different problem from a wrong password,
       // and telling someone to keep retrying credentials that are correct

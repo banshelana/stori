@@ -4,8 +4,8 @@ import { useState } from "react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { Icon } from "@/components/panel/Icon";
-import { Avatar } from "@/components/Avatar";
 import { LocaleSwitcher } from "@/components/LocaleSwitcher";
+import { UserMenu } from "@/components/UserMenu";
 import { useI18n } from "@/i18n/I18nProvider";
 import { localePath, stripLocale } from "@/i18n/paths";
 import { useAuth } from "@/lib/auth/auth-context";
@@ -27,7 +27,7 @@ export function PanelShell({
   titleKey: string;
   children: React.ReactNode;
 }) {
-  const { user, can, signOut } = useAuth();
+  const { can, signOut } = useAuth();
   const { t, locale } = useI18n();
   const pathname = usePathname();
   const router = useRouter();
@@ -137,24 +137,7 @@ export function PanelShell({
 
           <div className="flex items-center gap-3">
             <LocaleSwitcher compact />
-            {user && (
-              <div className="flex items-center gap-2">
-                <div className="hidden text-end sm:block">
-                  <p className="truncate text-sm font-semibold text-slate-900">
-                    {user.firstName} {user.lastName}
-                  </p>
-                  <p className="text-xs text-slate-500">
-                    {t(`roles.${user.subRole}`)}
-                  </p>
-                </div>
-                <Avatar
-                  firstName={user.firstName}
-                  lastName={user.lastName}
-                  avatarUrl={user.avatarUrl}
-                  avatarColor={user.avatarColor}
-                />
-              </div>
-            )}
+            <UserMenu showRole />
           </div>
         </header>
 

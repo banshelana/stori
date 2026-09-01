@@ -5,7 +5,7 @@ import { usePathname, useRouter } from "next/navigation";
 import { useI18n } from "@/i18n/I18nProvider";
 import { localePath, stripLocale } from "@/i18n/paths";
 import { useAuth } from "@/lib/auth/auth-context";
-import { homePathFor } from "@/lib/auth/permissions";
+import { panelPathFor } from "@/lib/auth/permissions";
 import type { Permission } from "@/lib/auth/types";
 
 /**
@@ -61,7 +61,7 @@ export function Guard({
         <p className="mt-2 text-slate-500">{t("auth.unauthorizedBody")}</p>
         <button
           type="button"
-          onClick={() => router.replace(localePath(locale, homePathFor(user.role)))}
+          onClick={() => router.replace(localePath(locale, panelPathFor(user.role)))}
           className="mt-6 rounded-lg bg-indigo-600 px-5 py-2.5 text-sm font-semibold text-white hover:bg-indigo-700"
         >
           {t("common.back")}
