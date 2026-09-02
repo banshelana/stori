@@ -157,7 +157,8 @@
     "locations": "مکان‌ها",
     "locationsHint": "کشورها، استان‌ها و شهرهایی که فرم آدرس از آن‌ها استفاده می‌کند.",
     "viewLocation": "مشاهده موقعیت روی نقشه",
-    "customerLocation": "موقعیت مشتری"
+    "customerLocation": "موقعیت مشتری",
+    "queue": "کارتابل سفارش‌ها"
   },
   "account": {
     "title": "حساب کاربری",
@@ -480,5 +481,36 @@
     "geolocationUnavailable": "مرورگر شما از تشخیص موقعیت پشتیبانی نمی‌کند.",
     "geolocationDenied": "موقعیت شما دریافت نشد. روی نقشه کلیک کنید.",
     "noLocationSaved": "موقعیتی برای این مشتری ثبت نشده است."
+  },
+  "queue": {
+    "hint": "سفارش‌های جدید و در انتظار که باید رسیدگی شوند. تاریخچه کامل در بخش فروش است.",
+    "stat": {
+      "total": "نیازمند اقدام",
+      "created": "جدید",
+      "pending": "در انتظار",
+      "overdue": "معوق"
+    },
+    "searchCustomer": "مشتری",
+    "searchCustomerHint": "نام، موبایل یا کد سفارش",
+    "searchProduct": "محصول",
+    "searchProductHint": "نام محصول",
+    "dateRange": "تاریخ سفارش",
+    "dateFrom": "از",
+    "dateTo": "تا",
+    "priceRange": "مبلغ سفارش",
+    "showing": "نمایش {count} از {total}",
+    "allClear": "موردی در انتظار نیست",
+    "allClearHint": "همه سفارش‌ها رسیدگی شده‌اند. سفارش‌های جدید به‌صورت خودکار اینجا نمایش داده می‌شوند.",
+    "new": "جدید",
+    "today": "امروز",
+    "waitingDays": "{days} روز در انتظار",
+    "markPending": "در انتظار",
+    "startProcessing": "شروع پردازش",
+    "newOrders": "سفارش‌های جدید",
+    "nothingNew": "سفارش جدیدی نیست.",
+    "markAllSeen": "علامت‌گذاری همه",
+    "openQueue": "باز کردن کارتابل سفارش‌ها",
+    "bellEmpty": "سفارش جدیدی نیست",
+    "bellWithCount": "{count} سفارش جدید"
   }
 }

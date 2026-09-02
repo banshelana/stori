@@ -9,6 +9,11 @@ export interface NavItem {
   icon: string;
   /** Menu entry renders only when the signed-in user holds this. */
   permission: Permission;
+  /**
+   * Names a live counter the shell resolves and renders as a pill.
+   * Kept as a key rather than a number so nav stays plain data.
+   */
+  badge?: "orderQueue";
 }
 
 // Menus are derived from permissions, so a sub-role that loses a
@@ -25,6 +30,14 @@ export const ADMIN_NAV: NavItem[] = [
     labelKey: "admin.customers",
     icon: "users",
     permission: "customers.view",
+  },
+  {
+    href: "/admin/queue",
+    labelKey: "admin.queue",
+    icon: "inbox",
+    permission: "sales.view",
+    // Rendered by PanelShell from the live queue count.
+    badge: "orderQueue",
   },
   {
     href: "/admin/sales",

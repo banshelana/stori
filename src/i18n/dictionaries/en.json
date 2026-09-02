@@ -157,7 +157,8 @@
     "locations": "Locations",
     "locationsHint": "Countries, provinces and cities used by the address form.",
     "viewLocation": "View location on map",
-    "customerLocation": "Customer location"
+    "customerLocation": "Customer location",
+    "queue": "Order queue"
   },
   "account": {
     "title": "My account",
@@ -480,5 +481,36 @@
     "geolocationUnavailable": "Your browser does not support location lookup.",
     "geolocationDenied": "Could not get your location. Click the map instead.",
     "noLocationSaved": "No location saved for this customer."
+  },
+  "queue": {
+    "hint": "New and pending orders waiting to be processed. Sales shows the full history.",
+    "stat": {
+      "total": "Needs action",
+      "created": "New",
+      "pending": "Pending",
+      "overdue": "Overdue"
+    },
+    "searchCustomer": "Customer",
+    "searchCustomerHint": "Name, mobile or order reference",
+    "searchProduct": "Product",
+    "searchProductHint": "Product name",
+    "dateRange": "Order date",
+    "dateFrom": "From",
+    "dateTo": "To",
+    "priceRange": "Order total",
+    "showing": "Showing {count} of {total}",
+    "allClear": "Nothing waiting",
+    "allClearHint": "Every order has been picked up. New ones appear here automatically.",
+    "new": "New",
+    "today": "Today",
+    "waitingDays": "{days} days waiting",
+    "markPending": "Mark pending",
+    "startProcessing": "Start processing",
+    "newOrders": "New orders",
+    "nothingNew": "No new orders.",
+    "markAllSeen": "Mark all seen",
+    "openQueue": "Open the order queue",
+    "bellEmpty": "No new orders",
+    "bellWithCount": "{count} new orders"
   }
 }

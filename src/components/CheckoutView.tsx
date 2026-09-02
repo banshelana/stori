@@ -6,7 +6,9 @@ import { TextField } from "@/components/form/Field";
 import { useI18n } from "@/i18n/I18nProvider";
 import { localized } from "@/i18n/localized";
 import { useLocaleHref } from "@/i18n/navigation";
+import { useAuth } from "@/lib/auth/auth-context";
 import { useCart } from "@/lib/cart-context";
+import { ordersRepo } from "@/lib/data/repositories";
 import { formatNumber, formatPrice } from "@/lib/format";
 import { useCartLines } from "@/lib/hooks";
 import { effectivePrice } from "@/lib/pricing";
@@ -15,6 +17,7 @@ export function CheckoutView() {
   const router = useRouter();
   const href = useLocaleHref();
   const { items, clear, hydrated } = useCart();
+  const { user } = useAuth();
   const { lines, subtotal, currency, loading } = useCartLines();
   const { t, locale } = useI18n();
   const [placed, setPlaced] = useState(false);
@@ -27,14 +30,46 @@ export function CheckoutView() {
     mobile: "",
   });
 
-  function handleSubmit(e: React.FormEvent) {
+  const [placing, setPlacing] = useState(false);
+
+  async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
-    // Phase 2 posts the order through the axios client and only clears the
-    // cart once the API confirms it. Card details are intentionally not
-    // collected here — a real integration hands that to a payment provider
-    // so the card never touches this application.
-    setPlaced(true);
-    clear();
+    setPlacing(true);
+
+    try {
+      // A real order needs an account to belong to. A guest checkout
+      // would need the API to mint a customer first, so for now the
+      // signed-out path stays a demo confirmation.
+      if (user && lines.length > 0) {
+        const reference = `ORD-${Date.now().toString().slice(-7)}`;
+        await ordersRepo.create({
+          reference,
+          userId: user.id,
+          // Lands in the admin queue as work to pick up.
+          status: "created",
+          lines: lines.map(({ product, quantity }) => ({
+            productId: product.id,
+            // Snapshotted, so renaming the product later does not
+            // rewrite what this customer bought.
+            title: { ...product.title },
+            quantity,
+            unitPrice: effectivePrice(product),
+          })),
+          total: subtotal,
+          currency,
+          createdAt: new Date().toISOString().slice(0, 10),
+          updatedAt: new Date().toISOString().slice(0, 10),
+        });
+      }
+
+      // Card details are deliberately not collected — a real integration
+      // hands that to a payment provider so the card never touches this
+      // application.
+      setPlaced(true);
+      clear();
+    } finally {
+      setPlacing(false);
+    }
   }
 
   if (placed) {
@@ -144,9 +179,12 @@ export function CheckoutView() {
         </div>
         <button
           type="submit"
+          disabled={placing}
           className="btn-glow mt-6 w-full rounded-xl bg-gradient-to-r from-indigo-600 to-violet-600 py-3.5 text-sm font-bold text-white"
         >
-          {t("checkout.pay", { amount: formatPrice(subtotal, currency, locale) })}
+          {placing
+            ? t("common.loading")
+            : t("checkout.pay", { amount: formatPrice(subtotal, currency, locale) })}
         </button>
       </aside>
     </form>

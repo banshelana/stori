@@ -5,11 +5,14 @@ import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { Icon } from "@/components/panel/Icon";
 import { LocaleSwitcher } from "@/components/LocaleSwitcher";
+import { QueueBell } from "@/components/admin/QueueBell";
 import { UserMenu } from "@/components/UserMenu";
 import { useI18n } from "@/i18n/I18nProvider";
 import { localePath, stripLocale } from "@/i18n/paths";
 import { useAuth } from "@/lib/auth/auth-context";
 import type { NavItem } from "@/lib/nav";
+import { formatNumber } from "@/lib/format";
+import { useOrderQueue } from "@/lib/useOrderQueue";
 
 /**
  * Sidebar shell shared by the admin and account areas.
@@ -32,6 +35,17 @@ export function PanelShell({
   const pathname = usePathname();
   const router = useRouter();
   const [open, setOpen] = useState(false);
+
+  // Only the admin shell carries a live queue; the account shell has no
+  // nav item that asks for one, so the poll costs nothing there.
+  const wantsQueueBadge = nav.some((item) => item.badge === "orderQueue");
+  const queue = useOrderQueue({ poll: wantsQueueBadge });
+
+  function badgeFor(item: NavItem): string | null {
+    if (item.badge !== "orderQueue") return null;
+    const count = queue.summary.total;
+    return count > 0 ? formatNumber(count, locale) : null;
+  }
 
   const visible = nav.filter((item) => can(item.permission));
   const current = stripLocale(pathname);
@@ -69,6 +83,11 @@ export function PanelShell({
               className="h-5 w-5 shrink-0 transition-transform duration-200 group-hover:scale-110"
             />
             <span className="truncate">{t(item.labelKey)}</span>
+            {badgeFor(item) && (
+              <span className="ms-auto rounded-full bg-rose-500 px-1.5 text-xs font-bold text-white">
+                {badgeFor(item)}
+              </span>
+            )}
           </Link>
         );
       })}
@@ -144,6 +163,7 @@ export function PanelShell({
           <div className="min-w-0 flex-1" />
 
           <div className="flex items-center gap-3">
+            {wantsQueueBadge && <QueueBell />}
             <LocaleSwitcher compact />
             <UserMenu showRole />
           </div>

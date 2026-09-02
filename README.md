@@ -251,6 +251,46 @@ Up to 6 images per product. Change `max` on `GalleryUpload` to adjust.
 
 ---
 
+## Order queue
+
+`/admin/queue` — the work list, deliberately separate from Sales.
+
+Sales is the full history in every state. The queue holds only **created** and **pending** orders: things waiting on the store, not on the customer or the courier. Card layout rather than a table, because each entry is a task to act on, not a row to scan.
+
+### Cards
+
+Each card carries the reference, order date, status, customer with a click-to-call number, the line items, the total, and a waiting-time badge. The border colour escalates with age — under a day, one to three days, then overdue past three. Those thresholds are a starting point, not a policy; a store with next-day dispatch will want them lower.
+
+One-click transitions move an order to pending, processing or cancelled, which is the whole point of a work queue. Advancing an order removes it from the list, since it is no longer waiting.
+
+### Filters
+
+Customer (name, mobile or order reference), product name, order-date range, and order-total range — plus a status narrowing within the queue. Text fields debounce; dates and selects apply at once. Price is entered in major units and converted internally.
+
+### Notification
+
+A count badge on the sidebar entry and a bell in the admin header, with a dropdown listing the newest unacknowledged orders.
+
+**This is polling, not push** — the interval is 20 seconds, and the tab catches up immediately on regaining focus. A mock source has no way to notify us, and neither would a plain REST backend; production should replace the interval with a WebSocket or SSE stream, and the shape `useOrderQueue` returns would not change.
+
+"Seen" is tracked per browser rather than on the order, because *have I looked at this* is a property of the person, not the order — two operators should not clear each other's badge. A real backend would store it per user. Opening the queue acknowledges what is on screen.
+
+The sidebar badge, the header bell and the queue page each call `useOrderQueue`. They share state through a module-level subscription; without it, advancing an order on the page would leave the badge showing a stale count until its own poll came round.
+
+### Checkout now creates orders
+
+Previously checkout showed a confirmation and cleared the cart without recording anything, which made "notify on new orders" untestable — there was no source of new orders. A signed-in customer's checkout now writes a real order with status `created`, so it lands in the queue.
+
+Line items snapshot the product title and the **effective** (discounted) price at order time, so renaming or repricing a product later does not rewrite what the customer bought. Guest checkout still shows the demo confirmation only: an order needs an account to belong to, and minting a customer is the API's job.
+
+> Verified end to end in one browser session: customer adds to cart, checks out, and the admin's badge goes from 4 to 5 with the new order at the bottom of the queue.
+
+### A caveat about mock data
+
+Mock records live in module memory in the browser bundle. Client-side navigation preserves them; a **full page reload re-imports the module and resets everything to seed**. That is fine for a template and it is why the verification above had to stay within one page load — but it will surprise you if you expect an order created in one tab to exist in another.
+
+---
+
 ## SMS panel
 
 `/admin/messages`, behind `messages.view` / `messages.send`, with two tabs.
