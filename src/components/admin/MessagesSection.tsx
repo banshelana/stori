@@ -12,14 +12,18 @@ import { LOCALE_LABEL, LOCALES, type Locale } from "@/i18n/config";
 import { useI18n } from "@/i18n/I18nProvider";
 import { localized, type LocalizedText } from "@/i18n/localized";
 import { useAuth } from "@/lib/auth/auth-context";
-import type { SmsMessage } from "@/lib/data/commerce";
 import {
-  MOCK_SMS_TEMPLATES,
-  type SmsTemplate,
+  MESSAGE_CHANNELS,
+  type Message,
+  type MessageChannel,
+} from "@/lib/data/commerce";
+import {
+  MOCK_TEMPLATES,
+  type MessageTemplate,
 } from "@/lib/data/sms-templates";
-import { messagesRepo, smsTemplatesRepo } from "@/lib/data/repositories";
+import { messagesRepo, templatesRepo } from "@/lib/data/repositories";
 import { formatDate, formatNumber } from "@/lib/format";
-import { segmentInfo } from "@/lib/sms";
+import { hasSubject, messageCost } from "@/lib/messaging";
 import { useFormErrors } from "@/lib/useFormErrors";
 import { useResourceList } from "@/lib/useResourceList";
 import { validateRequired } from "@/lib/validation";
@@ -49,7 +53,7 @@ export function MessagesSection() {
           {
             id: "templates",
             label: t("sms.templates"),
-            badge: MOCK_SMS_TEMPLATES.length,
+            badge: MOCK_TEMPLATES.length,
           },
         ]}
       />
@@ -77,14 +81,21 @@ function MessagesTab() {
   });
 
   const [composing, setComposing] = useState(false);
-  const [deleting, setDeleting] = useState<SmsMessage | null>(null);
+  const [deleting, setDeleting] = useState<Message | null>(null);
   const [pending, setPending] = useState(false);
-  const [savingTemplate, setSavingTemplate] = useState<string | null>(null);
+  const [savingTemplate, setSavingTemplate] = useState<{
+    channel: MessageChannel;
+    subject: string;
+    body: string;
+  } | null>(null);
   const [sentCount, setSentCount] = useState<number | null>(null);
 
   const canSend = can("messages.send");
 
-  async function handleSend(messages: { recipient: string; body: string }[]) {
+  async function handleSend(
+    channel: MessageChannel,
+    messages: { recipient: string; subject?: string; body: string }[]
+  ) {
     setPending(true);
     try {
       const today = new Date().toISOString().slice(0, 10);
@@ -92,7 +103,9 @@ function MessagesTab() {
       // actually delivered rather than one row for a broadcast.
       for (const message of messages) {
         await messagesRepo.create({
+          channel,
           recipient: message.recipient,
+          subject: message.subject,
           body: message.body,
           status: "queued",
           sentAt: today,
@@ -106,7 +119,17 @@ function MessagesTab() {
     }
   }
 
-  const columns: Column<SmsMessage>[] = [
+  const columns: Column<Message>[] = [
+    {
+      key: "channel",
+      header: t("sms.channel"),
+      sortable: true,
+      render: (m) => (
+        <Badge tone={m.channel === "email" ? "info" : "neutral"}>
+          {t(`sms.channels.${m.channel}`)}
+        </Badge>
+      ),
+    },
     {
       key: "recipient",
       header: t("sms.recipient"),
@@ -121,7 +144,14 @@ function MessagesTab() {
       key: "body",
       header: t("sms.body"),
       render: (m) => (
-        <span className="line-clamp-2 max-w-md text-slate-600">{m.body}</span>
+        <span className="block max-w-md">
+          {m.subject && (
+            <span className="block truncate font-medium text-slate-800">
+              {m.subject}
+            </span>
+          )}
+          <span className="line-clamp-2 text-slate-600">{m.body}</span>
+        </span>
       ),
     },
     {
@@ -130,11 +160,16 @@ function MessagesTab() {
       align: "end",
       hideOnMobile: true,
       render: (m) => {
-        const info = segmentInfo(m.body);
+        const cost = messageCost(m.channel, m.body);
+        // Email has no segment model, so the column stays blank rather
+        // than reporting a number that means nothing.
+        if (cost.segments === null) {
+          return <span className="text-slate-300">—</span>;
+        }
         return (
           <span className="text-xs text-slate-500">
-            {formatNumber(info.segments, locale)}
-            <span className="ms-1 text-slate-400">{info.encoding}</span>
+            {formatNumber(cost.segments, locale)}
+            <span className="ms-1 text-slate-400">{cost.encoding}</span>
           </span>
         );
       },
@@ -190,6 +225,14 @@ function MessagesTab() {
         hasActiveFilters={list.hasActiveFilters}
         filters={[
           {
+            key: "channel",
+            label: t("sms.channel"),
+            options: MESSAGE_CHANNELS.map((value) => ({
+              value,
+              label: t(`sms.channels.${value}`),
+            })),
+          },
+          {
             key: "status",
             label: t("common.status"),
             options: (["sent", "queued", "failed"] as const).map((value) => ({
@@ -231,10 +274,12 @@ function MessagesTab() {
 
       {composing && (
         <ComposeSmsModal
-          templates={smsTemplatesRepo.all()}
+          templates={templatesRepo.all()}
           pending={pending}
           onSend={handleSend}
-          onSaveTemplate={(body) => setSavingTemplate(body)}
+          onSaveTemplate={(channel, subject, body) =>
+            setSavingTemplate({ channel, subject, body })
+          }
           onCancel={() => setComposing(false)}
         />
       )}
@@ -244,13 +289,16 @@ function MessagesTab() {
       {savingTemplate !== null && (
         <TemplateModal
           initial="new"
-          seedBody={savingTemplate}
+          seed={savingTemplate}
           pending={pending}
           onSave={async (form) => {
             setPending(true);
             try {
-              await smsTemplatesRepo.create({
+              await templatesRepo.create({
                 ...form,
+                // Only email stores a subject; keeping an empty one on an
+                // SMS template would imply a field that does not apply.
+                subject: hasSubject(form.channel) ? form.subject : undefined,
                 createdAt: new Date().toISOString().slice(0, 10),
               });
               setSavingTemplate(null);
@@ -291,15 +339,25 @@ function MessagesTab() {
 function TemplatesTab() {
   const { t, locale } = useI18n();
   const { can } = useAuth();
-  const list = useResourceList(smsTemplatesRepo, { initialSortKey: "name" });
+  const list = useResourceList(templatesRepo, { initialSortKey: "name" });
 
-  const [editing, setEditing] = useState<SmsTemplate | "new" | null>(null);
-  const [deleting, setDeleting] = useState<SmsTemplate | null>(null);
+  const [editing, setEditing] = useState<MessageTemplate | "new" | null>(null);
+  const [deleting, setDeleting] = useState<MessageTemplate | null>(null);
   const [pending, setPending] = useState(false);
 
   const canSend = can("messages.send");
 
-  const columns: Column<SmsTemplate>[] = [
+  const columns: Column<MessageTemplate>[] = [
+    {
+      key: "channel",
+      header: t("sms.channel"),
+      sortable: true,
+      render: (tpl) => (
+        <Badge tone={tpl.channel === "email" ? "info" : "neutral"}>
+          {t(`sms.channels.${tpl.channel}`)}
+        </Badge>
+      ),
+    },
     {
       key: "name",
       header: t("common.name"),
@@ -325,11 +383,14 @@ function TemplatesTab() {
       align: "end",
       hideOnMobile: true,
       render: (tpl) => {
-        const info = segmentInfo(localized(tpl.body, locale));
+        const cost = messageCost(tpl.channel, localized(tpl.body, locale));
+        if (cost.segments === null) {
+          return <span className="text-slate-300">—</span>;
+        }
         return (
           <span className="text-xs text-slate-500">
-            {formatNumber(info.segments, locale)}
-            <span className="ms-1 text-slate-400">{info.encoding}</span>
+            {formatNumber(cost.segments, locale)}
+            <span className="ms-1 text-slate-400">{cost.encoding}</span>
           </span>
         );
       },
@@ -364,6 +425,16 @@ function TemplatesTab() {
         onFilter={list.setFilter}
         onReset={list.reset}
         hasActiveFilters={list.hasActiveFilters}
+        filters={[
+          {
+            key: "channel",
+            label: t("sms.channel"),
+            options: MESSAGE_CHANNELS.map((value) => ({
+              value,
+              label: t(`sms.channels.${value}`),
+            })),
+          },
+        ]}
       />
 
       <DataTable
@@ -409,12 +480,15 @@ function TemplatesTab() {
             setPending(true);
             try {
               if (editing === "new") {
-                await smsTemplatesRepo.create({
+                await templatesRepo.create({
                   ...form,
                   createdAt: new Date().toISOString().slice(0, 10),
                 });
               } else {
-                await smsTemplatesRepo.update(editing.id, form);
+                await templatesRepo.update(editing.id, {
+                ...form,
+                subject: hasSubject(form.channel) ? form.subject : undefined,
+              });
               }
               setEditing(null);
               list.reload();
@@ -435,7 +509,7 @@ function TemplatesTab() {
           if (!deleting) return;
           setPending(true);
           try {
-            await smsTemplatesRepo.remove(deleting.id);
+            await templatesRepo.remove(deleting.id);
             setDeleting(null);
             list.reload();
           } finally {
@@ -448,34 +522,64 @@ function TemplatesTab() {
   );
 }
 
+interface TemplateForm {
+  channel: MessageChannel;
+  name: LocalizedText;
+  subject: LocalizedText;
+  body: LocalizedText;
+}
+
 function TemplateModal({
   initial,
-  seedBody,
+  seed,
   pending,
   onSave,
   onCancel,
 }: {
-  initial: SmsTemplate | "new";
-  /** Pre-fills the active locale's body when saving from the composer. */
-  seedBody?: string;
+  initial: MessageTemplate | "new";
+  /** Pre-fills the active locale from the composer's current draft. */
+  seed?: { channel: MessageChannel; subject: string; body: string } | null;
   pending: boolean;
-  onSave: (form: { name: LocalizedText; body: LocalizedText }) => void;
+  onSave: (form: TemplateForm) => void;
   onCancel: () => void;
 }) {
   const { t, locale } = useI18n();
   const isNew = initial === "new";
 
-  const [form, setForm] = useState<{ name: LocalizedText; body: LocalizedText }>(
+  const [form, setForm] = useState<TemplateForm>(
     isNew
       ? {
+          channel: seed?.channel ?? "sms",
           name: { en: "", fa: "" },
-          body: { en: "", fa: "", ...(seedBody ? { [locale]: seedBody } : {}) },
+          subject: {
+            en: "",
+            fa: "",
+            ...(seed?.subject ? { [locale]: seed.subject } : {}),
+          },
+          body: {
+            en: "",
+            fa: "",
+            ...(seed?.body ? { [locale]: seed.body } : {}),
+          },
         }
-      : { name: { ...initial.name }, body: { ...initial.body } }
+      : {
+          channel: initial.channel,
+          name: { ...initial.name },
+          subject: initial.subject
+            ? { ...initial.subject }
+            : { en: "", fa: "" },
+          body: { ...initial.body },
+        }
   );
   const { errors, setErrors, clear } = useFormErrors();
 
-  function setField(field: "name" | "body", lang: Locale, value: string) {
+  const needsSubject = hasSubject(form.channel);
+
+  function setField(
+    field: "name" | "subject" | "body",
+    lang: Locale,
+    value: string
+  ) {
     setForm((prev) => ({ ...prev, [field]: { ...prev[field], [lang]: value } }));
     clear(`${field}.${lang}`);
   }
@@ -489,6 +593,10 @@ function TemplateModal({
       }
       if (!validateRequired(form.body[lang])) {
         next[`body.${lang}`] = t("validation.required");
+      }
+      // Only email carries a subject, so only email requires one.
+      if (needsSubject && !validateRequired(form.subject[lang])) {
+        next[`subject.${lang}`] = t("validation.required");
       }
     }
     setErrors(next);
@@ -527,8 +635,31 @@ function TemplateModal({
       }
     >
       <form id="template-form" onSubmit={submit} className="space-y-4" noValidate>
+        <div>
+          <span className="mb-1.5 block text-xs font-semibold uppercase tracking-wide text-slate-500">
+            {t("sms.channel")}
+          </span>
+          <div className="flex gap-1 rounded-xl bg-slate-100 p-1">
+            {MESSAGE_CHANNELS.map((value) => (
+              <button
+                key={value}
+                type="button"
+                onClick={() => setForm((prev) => ({ ...prev, channel: value }))}
+                aria-pressed={form.channel === value}
+                className={`flex-1 rounded-lg px-3 py-1.5 text-sm font-medium transition-colors ${
+                  form.channel === value
+                    ? "bg-white text-slate-900 shadow-sm"
+                    : "text-slate-500 hover:text-slate-700"
+                }`}
+              >
+                {t(`sms.channels.${value}`)}
+              </button>
+            ))}
+          </div>
+        </div>
+
         {LOCALES.map((lang) => {
-          const info = segmentInfo(form.body[lang]);
+          const cost = messageCost(form.channel, form.body[lang]);
           return (
             <div
               key={lang}
@@ -545,23 +676,40 @@ function TemplateModal({
                 onChange={(v) => setField("name", lang, v)}
                 error={errors[`name.${lang}`]}
               />
+
+              {needsSubject && (
+                <TextField
+                  label={t("sms.subject")}
+                  required
+                  dir={lang === "fa" ? "rtl" : "ltr"}
+                  value={form.subject[lang]}
+                  onChange={(v) => setField("subject", lang, v)}
+                  error={errors[`subject.${lang}`]}
+                />
+              )}
+
               <TextAreaField
                 label={t("sms.body")}
                 required
-                rows={3}
+                rows={needsSubject ? 6 : 3}
                 dir={lang === "fa" ? "rtl" : "ltr"}
                 value={form.body[lang]}
                 onChange={(v) => setField("body", lang, v)}
                 error={errors[`body.${lang}`]}
               />
-              <p className="text-xs text-slate-500">
-                <Badge tone={info.encoding === "UCS-2" ? "warning" : "neutral"}>
-                  {info.encoding}
-                </Badge>
-                <span className="ms-2">
-                  {t("sms.segmentCount", { segments: info.segments })}
-                </span>
-              </p>
+
+              {cost.segments !== null && (
+                <p className="text-xs text-slate-500">
+                  <Badge
+                    tone={cost.encoding === "UCS-2" ? "warning" : "neutral"}
+                  >
+                    {cost.encoding}
+                  </Badge>
+                  <span className="ms-2">
+                    {t("sms.segmentCount", { segments: cost.segments })}
+                  </span>
+                </p>
+              )}
             </div>
           );
         })}

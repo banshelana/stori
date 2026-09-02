@@ -67,6 +67,14 @@ export interface Review {
   createdAt: string;
 }
 
+export const TICKET_STATUSES = ["open", "pending", "resolved"] as const;
+export type TicketStatus = (typeof TICKET_STATUSES)[number];
+
+/**
+ * A support ticket. The opening message lives on the record itself and
+ * every subsequent message is a TicketReply, so the thread reads in one
+ * order without a special case for the first entry.
+ */
 export interface Contact {
   id: string;
   name: string;
@@ -74,13 +82,37 @@ export interface Contact {
   mobile: string;
   subject: string;
   body: string;
-  handled: boolean;
+  status: TicketStatus;
+  /** Set when the sender was signed in, so they can follow the thread. */
+  userId?: string;
+  /** Staff member handling it. */
+  assignedTo?: string;
   createdAt: string;
+  /** Bumped on every reply, so the queue can sort by staleness. */
+  updatedAt: string;
 }
 
-export interface SmsMessage {
+export interface TicketReply {
   id: string;
+  contactId: string;
+  author: "customer" | "staff";
+  authorName: string;
+  body: string;
+  createdAt: string;
+  /** Which channel the customer was notified through, if any. */
+  notifiedVia?: MessageChannel;
+}
+
+export const MESSAGE_CHANNELS = ["sms", "email"] as const;
+export type MessageChannel = (typeof MESSAGE_CHANNELS)[number];
+
+export interface Message {
+  id: string;
+  channel: MessageChannel;
+  /** A mobile number for SMS, an address for email. */
   recipient: string;
+  /** Email only; SMS has no subject line. */
+  subject?: string;
   body: string;
   status: "sent" | "queued" | "failed";
   sentAt: string;
@@ -186,8 +218,9 @@ export const MOCK_CONTACTS: Contact[] = [
     mobile: "09121112233",
     subject: "Bulk order enquiry",
     body: "Do you offer discounts for orders above 50 units?",
-    handled: false,
+    status: "open",
     createdAt: "2026-08-27",
+    updatedAt: "2026-08-27",
   },
   {
     id: "c-002",
@@ -196,14 +229,18 @@ export const MOCK_CONTACTS: Contact[] = [
     mobile: "09124445566",
     subject: "Damaged package",
     body: "The box arrived crushed, though the product seems fine.",
-    handled: true,
+    status: "pending",
+    userId: "u-005",
+    assignedTo: "u-003",
     createdAt: "2026-08-20",
+    updatedAt: "2026-08-24",
   },
 ];
 
-export const MOCK_SMS: SmsMessage[] = [
+export const MOCK_MESSAGES: Message[] = [
   {
     id: "m-001",
+    channel: "sms",
     recipient: "09120000004",
     body: "Your order ORD-2026002 is now being processed.",
     status: "sent",
@@ -211,6 +248,7 @@ export const MOCK_SMS: SmsMessage[] = [
   },
   {
     id: "m-002",
+    channel: "sms",
     recipient: "09120000005",
     body: "Your order ORD-2026008 has shipped.",
     status: "sent",
@@ -218,6 +256,7 @@ export const MOCK_SMS: SmsMessage[] = [
   },
   {
     id: "m-003",
+    channel: "sms",
     recipient: "09121112233",
     body: "Thanks for contacting us — our team will reply shortly.",
     status: "queued",
@@ -293,3 +332,23 @@ export async function mockDashboardStats(): Promise<DashboardStats> {
     })),
   };
 }
+
+export const MOCK_TICKET_REPLIES: TicketReply[] = [
+  {
+    id: "tr-001",
+    contactId: "c-002",
+    author: "staff",
+    authorName: "Mina Tehrani",
+    body: "Sorry about that. Could you send a photo of the box so we can raise it with the courier?",
+    createdAt: "2026-08-21",
+    notifiedVia: "email",
+  },
+  {
+    id: "tr-002",
+    contactId: "c-002",
+    author: "customer",
+    authorName: "Neda Rostami",
+    body: "Photo attached. The corner was completely crushed but the mug is intact.",
+    createdAt: "2026-08-24",
+  },
+];

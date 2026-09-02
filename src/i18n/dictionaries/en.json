@@ -115,7 +115,7 @@
     "payments": "Payments",
     "reviews": "Reviews",
     "contacts": "Contacts",
-    "messages": "SMS panel",
+    "messages": "Messages",
     "statsRevenue": "Revenue",
     "statsOrders": "Orders",
     "statsCustomers": "Customers",
@@ -146,7 +146,7 @@
     "editContact": "Edit contact",
     "deleteContact": "Delete this message?",
     "searchContacts": "Search by name, subject or email",
-    "newMessage": "Send SMS",
+    "newMessage": "New message",
     "editMessage": "Edit message",
     "deleteMessage": "Delete this SMS?",
     "searchMessages": "Search by recipient or text",
@@ -364,8 +364,12 @@
   "contact": {
     "subject": "Subject",
     "body": "Message",
-    "handled": "Handled",
-    "open": "Open"
+    "title": "Contact us",
+    "subtitle": "Send us a message and we will get back to you.",
+    "send": "Send message",
+    "needContact": "Give us an email or a mobile so we can reply.",
+    "sentTitle": "Message sent",
+    "sentBody": "Thanks — we will reply as soon as we can."
   },
   "sms": {
     "recipient": "Recipient",
@@ -377,8 +381,8 @@
       "failed": "Failed"
     },
     "send": "Send",
-    "panelHint": "Send messages to customers and manage reusable templates.",
-    "history": "Sent messages",
+    "panelHint": "Send SMS and email to customers, and manage reusable templates.",
+    "history": "Sent",
     "templates": "Templates",
     "recipients": "Recipients",
     "recipientCount": "{count} selected",
@@ -410,7 +414,19 @@
     "editTemplate": "Edit template",
     "deleteTemplate": "Delete this template?",
     "searchTemplates": "Search templates",
-    "placeholderHint": "Use {firstName}, {lastName}, {fullName} or {mobile} — they are replaced per recipient when sending."
+    "placeholderHint": "Use {firstName}, {lastName}, {fullName} or {mobile} — they are replaced per recipient when sending.",
+    "channel": "Channel",
+    "channels": {
+      "sms": "SMS",
+      "email": "Email"
+    },
+    "subject": "Subject",
+    "noSubject": "Email needs a subject line.",
+    "charsPlain": "{length} characters",
+    "emailsHint": "Separate with commas, spaces or new lines.",
+    "addEmails": "Add addresses",
+    "invalidEmails": "Not valid email addresses: {list}",
+    "unreachable": "{count} active customer(s) have no address for this channel and cannot be selected."
   },
   "upload": {
     "images": "Images",
@@ -624,5 +640,25 @@
     "clear": "Clear",
     "previousMonth": "Previous month",
     "nextMonth": "Next month"
+  },
+  "ticket": {
+    "status": {
+      "open": "Open",
+      "pending": "Awaiting customer",
+      "resolved": "Resolved"
+    },
+    "replies": "Replies",
+    "awaitingUs": "Customer replied last — waiting on us",
+    "reply": "Your reply",
+    "sendReply": "Send reply",
+    "noReply": "Write a reply first.",
+    "notify": "Notify the customer",
+    "notifyNone": "Do not notify",
+    "assignee": "Assigned to",
+    "unassigned": "Unassigned",
+    "opened": "opened the ticket",
+    "markResolved": "Mark resolved",
+    "reopen": "Reopen",
+    "replySubject": "Re: {subject}"
   }
 }

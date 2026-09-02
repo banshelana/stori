@@ -163,6 +163,9 @@ export function ProductsSection() {
     const today = new Date().toISOString().slice(0, 10);
     for (const alert of pending) {
       await messagesRepo.create({
+        // Back-in-stock subscribers leave a mobile, so SMS is the only
+        // channel we can reach them on.
+        channel: "sms",
         recipient: alert.mobile,
         body: t("stockAlert.smsBody", { product: title[locale] || title.en }),
         status: "queued",

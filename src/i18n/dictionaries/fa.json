@@ -115,7 +115,7 @@
     "payments": "پرداخت‌ها",
     "reviews": "نظرات",
     "contacts": "تماس‌ها",
-    "messages": "پنل پیامک",
+    "messages": "پیام‌ها",
     "statsRevenue": "درآمد",
     "statsOrders": "سفارش‌ها",
     "statsCustomers": "مشتریان",
@@ -146,7 +146,7 @@
     "editContact": "ویرایش تماس",
     "deleteContact": "این پیام حذف شود؟",
     "searchContacts": "جستجو بر اساس نام، موضوع یا ایمیل",
-    "newMessage": "ارسال پیامک",
+    "newMessage": "پیام جدید",
     "editMessage": "ویرایش پیام",
     "deleteMessage": "این پیامک حذف شود؟",
     "searchMessages": "جستجو بر اساس گیرنده یا متن",
@@ -364,8 +364,12 @@
   "contact": {
     "subject": "موضوع",
     "body": "پیام",
-    "handled": "رسیدگی شده",
-    "open": "باز"
+    "title": "تماس با ما",
+    "subtitle": "پیام خود را بفرستید تا در اسرع وقت پاسخ دهیم.",
+    "send": "ارسال پیام",
+    "needContact": "ایمیل یا شماره موبایل بدهید تا بتوانیم پاسخ دهیم.",
+    "sentTitle": "پیام ارسال شد",
+    "sentBody": "سپاسگزاریم — در اولین فرصت پاسخ می‌دهیم."
   },
   "sms": {
     "recipient": "گیرنده",
@@ -377,8 +381,8 @@
       "failed": "ناموفق"
     },
     "send": "ارسال",
-    "panelHint": "ارسال پیام به مشتریان و مدیریت قالب‌های آماده.",
-    "history": "پیام‌های ارسالی",
+    "panelHint": "ارسال پیامک و ایمیل به مشتریان و مدیریت قالب‌های آماده.",
+    "history": "ارسال‌شده",
     "templates": "قالب‌ها",
     "recipients": "گیرندگان",
     "recipientCount": "{count} انتخاب شده",
@@ -410,7 +414,19 @@
     "editTemplate": "ویرایش قالب",
     "deleteTemplate": "این قالب حذف شود؟",
     "searchTemplates": "جستجوی قالب‌ها",
-    "placeholderHint": "از {firstName}، {lastName}، {fullName} یا {mobile} استفاده کنید — هنگام ارسال برای هر گیرنده جایگزین می‌شوند."
+    "placeholderHint": "از {firstName}، {lastName}، {fullName} یا {mobile} استفاده کنید — هنگام ارسال برای هر گیرنده جایگزین می‌شوند.",
+    "channel": "کانال",
+    "channels": {
+      "sms": "پیامک",
+      "email": "ایمیل"
+    },
+    "subject": "موضوع",
+    "noSubject": "ایمیل به موضوع نیاز دارد.",
+    "charsPlain": "{length} کاراکتر",
+    "emailsHint": "با کاما، فاصله یا خط جدید جدا کنید.",
+    "addEmails": "افزودن آدرس‌ها",
+    "invalidEmails": "آدرس ایمیل معتبر نیست: {list}",
+    "unreachable": "{count} مشتری فعال برای این کانال نشانی ندارند و قابل انتخاب نیستند."
   },
   "upload": {
     "images": "تصاویر",
@@ -624,5 +640,25 @@
     "clear": "پاک کردن",
     "previousMonth": "ماه قبل",
     "nextMonth": "ماه بعد"
+  },
+  "ticket": {
+    "status": {
+      "open": "باز",
+      "pending": "در انتظار مشتری",
+      "resolved": "حل شده"
+    },
+    "replies": "پاسخ‌ها",
+    "awaitingUs": "آخرین پیام از مشتری است — در انتظار ماست",
+    "reply": "پاسخ شما",
+    "sendReply": "ارسال پاسخ",
+    "noReply": "ابتدا پاسخ را بنویسید.",
+    "notify": "اطلاع به مشتری",
+    "notifyNone": "اطلاع نده",
+    "assignee": "ارجاع به",
+    "unassigned": "ارجاع نشده",
+    "opened": "تیکت را باز کرد",
+    "markResolved": "علامت حل شده",
+    "reopen": "بازگشایی",
+    "replySubject": "پاسخ: {subject}"
   }
 }

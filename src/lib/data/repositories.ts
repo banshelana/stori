@@ -5,12 +5,14 @@ import {
   MOCK_ORDERS,
   MOCK_PAYMENTS,
   MOCK_REVIEWS,
-  MOCK_SMS,
+  MOCK_MESSAGES,
+  MOCK_TICKET_REPLIES,
   type Contact,
   type Order,
   type Payment,
   type Review,
-  type SmsMessage,
+  type Message,
+  type TicketReply,
 } from "@/lib/data/commerce";
 import {
   CITIES,
@@ -21,8 +23,8 @@ import {
   type Province,
 } from "@/lib/data/geo";
 import {
-  MOCK_SMS_TEMPLATES,
-  type SmsTemplate,
+  MOCK_TEMPLATES,
+  type MessageTemplate,
 } from "@/lib/data/sms-templates";
 import {
   MOCK_STOCK_ALERTS,
@@ -121,12 +123,13 @@ export const contactsRepo = createRepository<Contact>({
   },
 });
 
-export const messagesRepo = createRepository<SmsMessage>({
-  data: MOCK_SMS,
+export const messagesRepo = createRepository<Message>({
+  data: MOCK_MESSAGES,
   idPrefix: "m",
-  searchable: (m) => [m.recipient, m.body],
+  searchable: (m) => [m.recipient, m.subject ?? "", m.body],
   sorters: {
     recipient: (m) => m.recipient,
+    channel: (m) => m.channel,
     sentAt: (m) => m.sentAt,
     status: (m) => m.status,
   },
@@ -169,12 +172,13 @@ export const citiesRepo = createRepository<City>({
   },
 });
 
-export const smsTemplatesRepo = createRepository<SmsTemplate>({
-  data: MOCK_SMS_TEMPLATES,
+export const templatesRepo = createRepository<MessageTemplate>({
+  data: MOCK_TEMPLATES,
   idPrefix: "tpl",
   searchable: (t) => [
     ...Object.values(t.name),
     ...Object.values(t.body),
+    ...Object.values(t.subject ?? {}),
   ],
   sorters: {
     name: (t) => t.name.en,
@@ -202,4 +206,11 @@ export const couponsRepo = createRepository<Coupon>({
     usedCount: (c) => c.usedCount,
     endsAt: (c) => c.endsAt ?? "",
   },
+});
+
+export const ticketRepliesRepo = createRepository<TicketReply>({
+  data: MOCK_TICKET_REPLIES,
+  idPrefix: "tr",
+  searchable: (r) => [r.body, r.authorName],
+  sorters: { createdAt: (r) => r.createdAt },
 });

@@ -6,7 +6,14 @@ import { Icon } from "@/components/panel/Icon";
 import { useI18n } from "@/i18n/I18nProvider";
 import { customersRepo } from "@/lib/data/repositories";
 import type { MockUser } from "@/lib/data/users";
-import { isValidNumber, normalizeNumber, parseNumbers } from "@/lib/sms";
+import type { MessageChannel } from "@/lib/data/commerce";
+import {
+  isValidRecipient,
+  normalizeRecipient,
+  parseEmails,
+  recipientFieldFor,
+} from "@/lib/messaging";
+import { parseNumbers } from "@/lib/sms";
 
 export interface Recipient {
   mobile: string;
@@ -26,9 +33,11 @@ type Mode = "customers" | "manual";
  * that is the one whose placeholders can be resolved.
  */
 export function RecipientPicker({
+  channel,
   recipients,
   onChange,
 }: {
+  channel: MessageChannel;
   recipients: Recipient[];
   onChange: (next: Recipient[]) => void;
 }) {
@@ -38,13 +47,24 @@ export function RecipientPicker({
   const [manual, setManual] = useState("");
   const [invalid, setInvalid] = useState<string[]>([]);
 
-  // Only customers who can actually receive a message.
+  // Only customers reachable on this channel. The two sets differ —
+  // plenty of accounts have a mobile but no email — so switching
+  // channel genuinely changes who can be picked.
+  const field = recipientFieldFor(channel);
   const customers = useMemo(
     () =>
       customersRepo
         .all()
-        .filter((u) => u.role === "customer" && u.active && u.mobile),
-    []
+        .filter((u) => u.role === "customer" && u.active && Boolean(u[field])),
+    [field]
+  );
+
+  const unreachable = useMemo(
+    () =>
+      customersRepo
+        .all()
+        .filter((u) => u.role === "customer" && u.active && !u[field]).length,
+    [field]
   );
 
   const filtered = useMemo(() => {
@@ -71,7 +91,7 @@ export function RecipientPicker({
   }
 
   function toggleCustomer(customer: MockUser) {
-    const mobile = normalizeNumber(customer.mobile);
+    const mobile = normalizeRecipient(channel, customer[field] ?? "");
     if (selected.has(mobile)) {
       onChange(recipients.filter((r) => r.mobile !== mobile));
     } else {
@@ -80,7 +100,8 @@ export function RecipientPicker({
   }
 
   function addManual() {
-    const { valid, invalid: bad } = parseNumbers(manual);
+    const { valid, invalid: bad } =
+      channel === "sms" ? parseNumbers(manual) : parseEmails(manual);
     setInvalid(bad);
     if (valid.length > 0) {
       add(valid.map((mobile) => ({ mobile })));
@@ -91,7 +112,9 @@ export function RecipientPicker({
 
   const allFilteredSelected =
     filtered.length > 0 &&
-    filtered.every((c) => selected.has(normalizeNumber(c.mobile)));
+    filtered.every((c) =>
+      selected.has(normalizeRecipient(channel, c[field] ?? ""))
+    );
 
   return (
     <div className="space-y-3">
@@ -152,13 +175,15 @@ export function RecipientPicker({
                       recipients.filter(
                         (r) =>
                           !filtered.some(
-                            (c) => normalizeNumber(c.mobile) === r.mobile
+                            (c) =>
+                              normalizeRecipient(channel, c[field] ?? "") ===
+                              r.mobile
                           )
                       )
                     )
                   : add(
                       filtered.map((c) => ({
-                        mobile: normalizeNumber(c.mobile),
+                        mobile: normalizeRecipient(channel, c[field] ?? ""),
                         customer: c,
                       }))
                     )
@@ -176,7 +201,7 @@ export function RecipientPicker({
               </li>
             )}
             {filtered.map((customer) => {
-              const mobile = normalizeNumber(customer.mobile);
+              const mobile = normalizeRecipient(channel, customer[field] ?? "");
               const checked = selected.has(mobile);
               return (
                 <li key={customer.id}>
@@ -199,7 +224,7 @@ export function RecipientPicker({
                         {customer.firstName} {customer.lastName}
                       </span>
                       <span className="force-ltr block text-xs text-slate-500">
-                        {customer.mobile}
+                        {customer[field]}
                       </span>
                     </span>
                   </label>
@@ -215,26 +240,43 @@ export function RecipientPicker({
             value={manual}
             onChange={(e) => setManual(e.target.value)}
             dir="ltr"
-            placeholder="09120000001, 09120000002"
+            placeholder={
+              channel === "sms"
+                ? "09120000001, 09120000002"
+                : "someone@example.com, other@example.com"
+            }
             className="w-full rounded-xl border border-slate-200 bg-slate-50 px-3 py-2.5 text-sm outline-none focus:border-indigo-500 focus:bg-white"
           />
           <div className="mt-1.5 flex items-center justify-between gap-2">
-            <p className="text-xs text-slate-400">{t("sms.numbersHint")}</p>
+            <p className="text-xs text-slate-400">
+              {channel === "sms" ? t("sms.numbersHint") : t("sms.emailsHint")}
+            </p>
             <button
               type="button"
               onClick={addManual}
               disabled={!manual.trim()}
               className="rounded-lg border border-slate-200 px-3 py-1.5 text-xs font-semibold text-slate-600 hover:bg-slate-50 disabled:opacity-50"
             >
-              {t("sms.addNumbers")}
+              {channel === "sms" ? t("sms.addNumbers") : t("sms.addEmails")}
             </button>
           </div>
           {invalid.length > 0 && (
             <p className="mt-1 text-xs text-rose-600">
-              {t("sms.invalidNumbers", { list: invalid.join(", ") })}
+              {t(
+                channel === "sms"
+                  ? "sms.invalidNumbers"
+                  : "sms.invalidEmails",
+                { list: invalid.join(", ") }
+              )}
             </p>
           )}
         </div>
+      )}
+
+      {unreachable > 0 && (
+        <p className="rounded-lg bg-amber-50 p-2.5 text-xs text-amber-800">
+          {t("sms.unreachable", { count: unreachable })}
+        </p>
       )}
 
       {/* The combined list, whichever route each entry came from. */}
@@ -281,4 +323,4 @@ export function RecipientPicker({
   );
 }
 
-export { isValidNumber };
+export { isValidRecipient };

@@ -7,7 +7,17 @@ import { ConfirmDialog, Modal } from "@/components/panel/Modal";
 import { Badge, PageHeader } from "@/components/panel/ui";
 import { useI18n } from "@/i18n/I18nProvider";
 import { useAuth } from "@/lib/auth/auth-context";
-import type { Contact } from "@/lib/data/commerce";
+import {
+  TICKET_STATUSES,
+  type Contact,
+} from "@/lib/data/commerce";
+import { TicketThread } from "@/components/admin/TicketThread";
+import {
+  lastAuthor,
+  replyCount,
+  TICKET_STATUS_TONE,
+} from "@/lib/tickets";
+import { ticketRepliesRepo } from "@/lib/data/repositories";
 import { contactsRepo } from "@/lib/data/repositories";
 import { formatDate } from "@/lib/format";
 import { useResourceList } from "@/lib/useResourceList";
@@ -65,11 +75,35 @@ export function ContactsSection() {
       ),
     },
     {
-      key: "handled",
+      key: "replies",
+      header: t("ticket.replies"),
+      align: "end",
+      hideOnMobile: true,
+      render: (c) => {
+        const count = replyCount(c.id, ticketRepliesRepo.all());
+        const waiting = lastAuthor(c, ticketRepliesRepo.all()) === "customer";
+        return (
+          <span className="inline-flex items-center gap-1.5">
+            <span className="text-slate-600">{count}</span>
+            {/* The customer having spoken last is the real signal that a
+                ticket is waiting on us, independent of its status. */}
+            {waiting && (
+              <span
+                title={t("ticket.awaitingUs")}
+                className="h-2 w-2 rounded-full bg-rose-500"
+              />
+            )}
+          </span>
+        );
+      },
+    },
+    {
+      key: "status",
       header: t("common.status"),
+      sortable: true,
       render: (c) => (
-        <Badge tone={c.handled ? "success" : "warning"}>
-          {c.handled ? t("contact.handled") : t("contact.open")}
+        <Badge tone={TICKET_STATUS_TONE[c.status]}>
+          {t(`ticket.status.${c.status}`)}
         </Badge>
       ),
     },
@@ -89,12 +123,12 @@ export function ContactsSection() {
         hasActiveFilters={list.hasActiveFilters}
         filters={[
           {
-            key: "handled",
+            key: "status",
             label: t("common.status"),
-            options: [
-              { value: "false", label: t("contact.open") },
-              { value: "true", label: t("contact.handled") },
-            ],
+            options: TICKET_STATUSES.map((value) => ({
+              value,
+              label: t(`ticket.status.${value}`),
+            })),
           },
         ]}
       />
@@ -123,17 +157,27 @@ export function ContactsSection() {
             ? [
                 {
                   icon: "check",
-                  label: t("common.markHandled"),
-                  visible: (c: Contact) => !c.handled,
+                  label: t("ticket.markResolved"),
+                  visible: (c: Contact) => c.status !== "resolved",
                   onClick: (c: Contact) =>
-                    mutate(() => contactsRepo.update(c.id, { handled: true })),
+                    mutate(() =>
+                      contactsRepo.update(c.id, {
+                        status: "resolved",
+                        updatedAt: new Date().toISOString().slice(0, 10),
+                      })
+                    ),
                 },
                 {
                   icon: "close",
-                  label: t("common.markUnhandled"),
-                  visible: (c: Contact) => c.handled,
+                  label: t("ticket.reopen"),
+                  visible: (c: Contact) => c.status === "resolved",
                   onClick: (c: Contact) =>
-                    mutate(() => contactsRepo.update(c.id, { handled: false })),
+                    mutate(() =>
+                      contactsRepo.update(c.id, {
+                        status: "open",
+                        updatedAt: new Date().toISOString().slice(0, 10),
+                      })
+                    ),
                 },
                 {
                   icon: "trash",
@@ -154,57 +198,17 @@ export function ContactsSection() {
       />
 
       {viewing && (
-        <Modal
-          open
-          title={viewing.subject}
+        <TicketThread
+          contact={viewing}
+          onChanged={() => {
+            list.reload();
+            // Re-read so the thread reflects the status it just set.
+            setViewing(
+              contactsRepo.all().find((c) => c.id === viewing.id) ?? null
+            );
+          }}
           onClose={() => setViewing(null)}
-          footer={
-            canWrite && (
-              <button
-                type="button"
-                disabled={pending}
-                onClick={() =>
-                  mutate(async () => {
-                    await contactsRepo.update(viewing.id, {
-                      handled: !viewing.handled,
-                    });
-                    setViewing(null);
-                  })
-                }
-                className="rounded-lg bg-indigo-600 px-4 py-2 text-sm font-semibold text-white hover:bg-indigo-700 disabled:opacity-60"
-              >
-                {viewing.handled
-                  ? t("common.markUnhandled")
-                  : t("common.markHandled")}
-              </button>
-            )
-          }
-        >
-          <dl className="space-y-3 text-sm">
-            <div className="flex gap-2">
-              <dt className="text-slate-500">{t("common.name")}:</dt>
-              <dd className="font-medium text-slate-900">{viewing.name}</dd>
-            </div>
-            <div className="flex gap-2">
-              <dt className="text-slate-500">{t("account.email")}:</dt>
-              <dd className="force-ltr font-medium text-slate-900">
-                {viewing.email}
-              </dd>
-            </div>
-            <div className="flex gap-2">
-              <dt className="text-slate-500">{t("auth.mobile")}:</dt>
-              <dd className="force-ltr font-medium text-slate-900">
-                {viewing.mobile}
-              </dd>
-            </div>
-            <div>
-              <dt className="mb-1 text-slate-500">{t("contact.body")}:</dt>
-              <dd className="rounded-lg bg-slate-50 p-3 leading-relaxed text-slate-700">
-                {viewing.body}
-              </dd>
-            </div>
-          </dl>
-        </Modal>
+        />
       )}
 
       <ConfirmDialog

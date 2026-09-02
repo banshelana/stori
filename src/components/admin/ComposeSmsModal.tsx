@@ -1,7 +1,11 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import { SelectField, TextAreaField } from "@/components/form/Field";
+import {
+  SelectField,
+  TextAreaField,
+  TextField,
+} from "@/components/form/Field";
 import {
   RecipientPicker,
   type Recipient,
@@ -12,11 +16,15 @@ import { Badge } from "@/components/panel/ui";
 import { useI18n } from "@/i18n/I18nProvider";
 import { localized } from "@/i18n/localized";
 import { formatNumber } from "@/lib/format";
-import type { SmsTemplate } from "@/lib/data/sms-templates";
+import type { MessageTemplate } from "@/lib/data/sms-templates";
+import {
+  MESSAGE_CHANNELS,
+  type MessageChannel,
+} from "@/lib/data/commerce";
+import { hasSubject, messageCost } from "@/lib/messaging";
 import {
   applyPlaceholders,
   PLACEHOLDERS,
-  segmentInfo,
   unresolvedFor,
   type PlaceholderValues,
 } from "@/lib/sms";
@@ -39,21 +47,26 @@ export function ComposeSmsModal({
   onSaveTemplate,
   onCancel,
 }: {
-  templates: SmsTemplate[];
+  templates: MessageTemplate[];
   pending: boolean;
-  onSend: (messages: { recipient: string; body: string }[]) => void;
-  onSaveTemplate: (body: string) => void;
+  onSend: (
+    channel: MessageChannel,
+    messages: { recipient: string; subject?: string; body: string }[]
+  ) => void;
+  onSaveTemplate: (channel: MessageChannel, subject: string, body: string) => void;
   onCancel: () => void;
 }) {
   const { t, locale } = useI18n();
 
+  const [channel, setChannel] = useState<MessageChannel>("sms");
   const [recipients, setRecipients] = useState<Recipient[]>([]);
+  const [subject, setSubject] = useState("");
   const [body, setBody] = useState("");
   const [templateId, setTemplateId] = useState("");
   const [previewIndex, setPreviewIndex] = useState(0);
   const [error, setError] = useState<string | null>(null);
 
-  const info = segmentInfo(body);
+  const cost = messageCost(channel, body);
 
   // Preview against a real recipient — that is the only way to see what
   // the placeholders actually become.
@@ -61,7 +74,7 @@ export function ComposeSmsModal({
   const preview = previewFor
     ? applyPlaceholders(body, valuesFor(previewFor))
     : body;
-  const previewInfo = segmentInfo(preview);
+  const previewCost = messageCost(channel, preview);
 
   /**
    * Recipients whose data cannot fill every placeholder in the body —
@@ -78,7 +91,18 @@ export function ComposeSmsModal({
   function applyTemplate(id: string) {
     setTemplateId(id);
     const template = templates.find((tpl) => tpl.id === id);
-    if (template) setBody(localized(template.body, locale));
+    if (!template) return;
+    setBody(localized(template.body, locale));
+    if (template.subject) setSubject(localized(template.subject, locale));
+  }
+
+  /** Switching channel invalidates the recipients and the template. */
+  function switchChannel(next: MessageChannel) {
+    if (next === channel) return;
+    setChannel(next);
+    setRecipients([]);
+    setTemplateId("");
+    setPreviewIndex(0);
   }
 
   function insertPlaceholder(name: string) {
@@ -94,18 +118,29 @@ export function ComposeSmsModal({
       setError(t("sms.noBody"));
       return;
     }
+    if (hasSubject(channel) && !subject.trim()) {
+      setError(t("sms.noSubject"));
+      return;
+    }
     setError(null);
 
     // One message per recipient, each with its own placeholders resolved.
     onSend(
+      channel,
       recipients.map((r) => ({
         recipient: r.mobile,
+        subject: hasSubject(channel)
+          ? applyPlaceholders(subject, valuesFor(r))
+          : undefined,
         body: applyPlaceholders(body, valuesFor(r)),
       }))
     );
   }
 
-  const totalSegments = recipients.length * Math.max(1, info.segments);
+  const totalSegments =
+    cost.segments === null
+      ? null
+      : recipients.length * Math.max(1, cost.segments);
 
   return (
     <Modal
@@ -137,7 +172,38 @@ export function ComposeSmsModal({
       }
     >
       <div className="space-y-5">
-        <RecipientPicker recipients={recipients} onChange={setRecipients} />
+        <div>
+          <span className="mb-1.5 block text-xs font-semibold uppercase tracking-wide text-slate-500">
+            {t("sms.channel")}
+          </span>
+          <div className="flex gap-1 rounded-xl bg-slate-100 p-1">
+            {MESSAGE_CHANNELS.map((value) => (
+              <button
+                key={value}
+                type="button"
+                onClick={() => switchChannel(value)}
+                aria-pressed={channel === value}
+                className={`flex flex-1 items-center justify-center gap-2 rounded-lg px-3 py-2 text-sm font-medium transition-colors ${
+                  channel === value
+                    ? "bg-white text-slate-900 shadow-sm"
+                    : "text-slate-500 hover:text-slate-700"
+                }`}
+              >
+                <Icon
+                  name={value === "sms" ? "chat" : "mail"}
+                  className="h-4 w-4"
+                />
+                {t(`sms.channels.${value}`)}
+              </button>
+            ))}
+          </div>
+        </div>
+
+        <RecipientPicker
+          channel={channel}
+          recipients={recipients}
+          onChange={setRecipients}
+        />
 
         <div className="border-t border-slate-200 pt-5">
           <SelectField
@@ -145,17 +211,31 @@ export function ComposeSmsModal({
             value={templateId}
             placeholder={t("sms.noTemplate")}
             onChange={applyTemplate}
-            options={templates.map((tpl) => ({
-              value: tpl.id,
-              label: localized(tpl.name, locale),
-            }))}
+            options={templates
+              .filter((tpl) => tpl.channel === channel)
+              .map((tpl) => ({
+                value: tpl.id,
+                label: localized(tpl.name, locale),
+              }))}
           />
         </div>
+
+        {hasSubject(channel) && (
+          <TextField
+            label={t("sms.subject")}
+            required
+            value={subject}
+            onChange={(v) => {
+              setSubject(v);
+              setError(null);
+            }}
+          />
+        )}
 
         <div>
           <TextAreaField
             label={t("sms.body")}
-            rows={4}
+            rows={hasSubject(channel) ? 7 : 4}
             value={body}
             onChange={(v) => {
               setBody(v);
@@ -184,30 +264,44 @@ export function ComposeSmsModal({
           {/* Encoding drives the limit: one Persian character takes the
               whole message from 160 characters to 70. */}
           <div className="mt-2 flex flex-wrap items-center justify-between gap-2 text-xs">
-            <span className="flex items-center gap-2">
-              <Badge tone={info.encoding === "UCS-2" ? "warning" : "neutral"}>
-                {info.encoding}
-              </Badge>
+            {cost.segments === null ? (
+              // Email has no per-length charge, so showing a segment
+              // count here would invent a constraint that does not exist.
               <span className="text-slate-500">
-                {t("sms.charCount", {
-                  length: formatNumber(info.length, locale),
-                  limit: formatNumber(info.limit, locale),
+                {t("sms.charsPlain", {
+                  length: formatNumber(cost.length, locale),
                 })}
               </span>
-            </span>
-            <span className="font-medium text-slate-600">
-              {t("sms.segmentCount", {
-                segments: formatNumber(info.segments, locale),
-              })}
-              {recipients.length > 0 && (
-                <span className="ms-1 text-slate-400">
-                  ·{" "}
-                  {t("sms.totalSegments", {
-                    total: formatNumber(totalSegments, locale),
-                  })}
+            ) : (
+              <>
+                <span className="flex items-center gap-2">
+                  <Badge
+                    tone={cost.encoding === "UCS-2" ? "warning" : "neutral"}
+                  >
+                    {cost.encoding}
+                  </Badge>
+                  <span className="text-slate-500">
+                    {t("sms.charCount", {
+                      length: formatNumber(cost.length, locale),
+                      limit: formatNumber(cost.limit ?? 0, locale),
+                    })}
+                  </span>
                 </span>
-              )}
-            </span>
+                <span className="font-medium text-slate-600">
+                  {t("sms.segmentCount", {
+                    segments: formatNumber(cost.segments, locale),
+                  })}
+                  {recipients.length > 0 && totalSegments !== null && (
+                    <span className="ms-1 text-slate-400">
+                      ·{" "}
+                      {t("sms.totalSegments", {
+                        total: formatNumber(totalSegments, locale),
+                      })}
+                    </span>
+                  )}
+                </span>
+              </>
+            )}
           </div>
         </div>
 
@@ -245,14 +339,25 @@ export function ComposeSmsModal({
                 </select>
               )}
             </div>
-            <p className="whitespace-pre-wrap rounded-lg bg-white p-3 text-sm leading-relaxed text-slate-800 shadow-sm">
-              {preview}
-            </p>
-            <p className="mt-1.5 text-xs text-slate-400">
-              {t("sms.segmentCount", {
-                segments: formatNumber(previewInfo.segments, locale),
-              })}
-            </p>
+            <div className="rounded-lg bg-white p-3 shadow-sm">
+              {hasSubject(channel) && subject.trim() && (
+                <p className="mb-2 border-b border-slate-100 pb-2 text-sm font-bold text-slate-900">
+                  {previewFor
+                    ? applyPlaceholders(subject, valuesFor(previewFor))
+                    : subject}
+                </p>
+              )}
+              <p className="whitespace-pre-wrap text-sm leading-relaxed text-slate-800">
+                {preview}
+              </p>
+            </div>
+            {previewCost.segments !== null && (
+              <p className="mt-1.5 text-xs text-slate-400">
+                {t("sms.segmentCount", {
+                  segments: formatNumber(previewCost.segments, locale),
+                })}
+              </p>
+            )}
           </div>
         )}
 
@@ -265,7 +370,7 @@ export function ComposeSmsModal({
         {body.trim() && (
           <button
             type="button"
-            onClick={() => onSaveTemplate(body)}
+            onClick={() => onSaveTemplate(channel, subject, body)}
             className="flex items-center gap-1.5 text-sm font-semibold text-indigo-600 hover:text-indigo-700"
           >
             <Icon name="plus" className="h-4 w-4" />
