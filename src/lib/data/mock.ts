@@ -1,14 +1,148 @@
 import { DEFAULT_LOCALE, type Locale } from "@/i18n/config";
 import { allTranslations } from "@/i18n/localized";
+import { matchesAttributes } from "@/lib/attributes";
 import { effectivePrice } from "@/lib/pricing";
 import type { Category, Product, SearchFilters } from "@/lib/types";
 
 // A small regional storefront for demo purposes. All prices in EUR cents.
+//
+// Each category carries its own `filters` array. These are plain data —
+// no component references, no functions — so the whole list can move to a
+// `categories` table (filters as a JSON column, or a joined `filters`
+// table) and the storefront will render whatever the API returns without
+// a code change.
 export const MOCK_CATEGORIES: Category[] = [
-  { id: "cat-1", name: { en: "Audio", fa: "صوتی" }, slug: "audio" },
-  { id: "cat-2", name: { en: "Wearables", fa: "پوشیدنی" }, slug: "wearables" },
-  { id: "cat-3", name: { en: "Desk & Office", fa: "میز و اداری" }, slug: "desk" },
-  { id: "cat-4", name: { en: "Home", fa: "خانه" }, slug: "home" },
+  {
+    id: "cat-1",
+    name: { en: "Audio", fa: "صوتی" },
+    slug: "audio",
+    filters: [
+      {
+        key: "connectivity",
+        kind: "multi",
+        label: { en: "Connectivity", fa: "اتصال" },
+        options: [
+          { value: "bluetooth", label: { en: "Bluetooth", fa: "بلوتوث" } },
+          { value: "wired", label: { en: "Wired", fa: "سیمی" } },
+          { value: "usb-c", label: { en: "USB-C", fa: "یو‌اس‌بی-سی" } },
+        ],
+      },
+      {
+        key: "form",
+        kind: "select",
+        label: { en: "Form factor", fa: "نوع" },
+        options: [
+          { value: "over-ear", label: { en: "Over-ear", fa: "روگوشی" } },
+          { value: "in-ear", label: { en: "In-ear", fa: "توگوشی" } },
+          { value: "speaker", label: { en: "Speaker", fa: "اسپیکر" } },
+        ],
+      },
+      {
+        key: "batteryHours",
+        kind: "range",
+        label: { en: "Battery life", fa: "شارژدهی" },
+        min: 0,
+        max: 60,
+        step: 5,
+        unit: "h",
+      },
+      {
+        key: "noiseCancelling",
+        kind: "boolean",
+        label: { en: "Noise cancelling", fa: "حذف نویز" },
+      },
+    ],
+  },
+  {
+    id: "cat-2",
+    name: { en: "Wearables", fa: "پوشیدنی" },
+    slug: "wearables",
+    filters: [
+      {
+        key: "display",
+        kind: "select",
+        label: { en: "Display", fa: "نمایشگر" },
+        options: [
+          { value: "amoled", label: { en: "AMOLED", fa: "AMOLED" } },
+          { value: "lcd", label: { en: "LCD", fa: "LCD" } },
+          { value: "none", label: { en: "No display", fa: "بدون نمایشگر" } },
+        ],
+      },
+      {
+        key: "batteryDays",
+        kind: "range",
+        label: { en: "Battery life", fa: "شارژدهی" },
+        min: 0,
+        max: 30,
+        step: 1,
+        unit: "d",
+      },
+      {
+        key: "gps",
+        kind: "boolean",
+        label: { en: "Built-in GPS", fa: "جی‌پی‌اس داخلی" },
+      },
+      {
+        key: "waterResistant",
+        kind: "boolean",
+        label: { en: "Water resistant", fa: "مقاوم به آب" },
+      },
+    ],
+  },
+  {
+    id: "cat-3",
+    name: { en: "Desk & Office", fa: "میز و اداری" },
+    slug: "desk",
+    filters: [
+      {
+        key: "switchType",
+        kind: "select",
+        label: { en: "Switch type", fa: "نوع سوییچ" },
+        options: [
+          { value: "linear", label: { en: "Linear", fa: "خطی" } },
+          { value: "tactile", label: { en: "Tactile", fa: "لمسی" } },
+          { value: "none", label: { en: "Not applicable", fa: "ندارد" } },
+        ],
+      },
+      {
+        key: "layout",
+        kind: "select",
+        label: { en: "Layout", fa: "چیدمان" },
+        options: [
+          { value: "75", label: { en: "75%", fa: "۷۵٪" } },
+          { value: "tkl", label: { en: "Tenkeyless", fa: "بدون نامپد" } },
+          { value: "full", label: { en: "Full size", fa: "کامل" } },
+        ],
+      },
+      {
+        key: "backlit",
+        kind: "boolean",
+        label: { en: "Backlit", fa: "نور پس‌زمینه" },
+      },
+    ],
+  },
+  {
+    id: "cat-4",
+    name: { en: "Home", fa: "خانه" },
+    slug: "home",
+    filters: [
+      {
+        key: "material",
+        kind: "multi",
+        label: { en: "Material", fa: "جنس" },
+        options: [
+          { value: "ceramic", label: { en: "Ceramic", fa: "سرامیک" } },
+          { value: "metal", label: { en: "Metal", fa: "فلز" } },
+          { value: "glass", label: { en: "Glass", fa: "شیشه" } },
+        ],
+      },
+      {
+        key: "dishwasherSafe",
+        kind: "boolean",
+        label: { en: "Dishwasher safe", fa: "مناسب ماشین ظرفشویی" },
+      },
+    ],
+  },
 ];
 
 export const MOCK_PRODUCTS: Product[] = [
@@ -23,6 +157,8 @@ export const MOCK_PRODUCTS: Product[] = [
     price: 19900,
     compareAtPrice: 24900,
     currency: "EUR",
+    brandId: "b-aurora",
+    attributes: { connectivity: ["bluetooth", "usb-c"], form: "over-ear", batteryHours: 40, noiseCancelling: true },
     images: [{ id: "img-headphones", src: "/images/headphones.svg" }],
     primaryImageId: "img-headphones",
     active: true,
@@ -66,6 +202,8 @@ export const MOCK_PRODUCTS: Product[] = [
     price: 12900,
     compareAtPrice: null,
     currency: "EUR",
+    brandId: "b-pulse",
+    attributes: { connectivity: ["bluetooth"], form: "in-ear", batteryHours: 24, noiseCancelling: true },
     images: [{ id: "img-earbuds", src: "/images/earbuds.svg" }],
     primaryImageId: "img-earbuds",
     active: true,
@@ -88,6 +226,8 @@ export const MOCK_PRODUCTS: Product[] = [
     price: 24900,
     compareAtPrice: 27900,
     currency: "EUR",
+    brandId: "b-nomad",
+    attributes: { display: "amoled", batteryDays: 7, gps: true, waterResistant: true },
     images: [{ id: "img-smartwatch", src: "/images/smartwatch.svg" }],
     primaryImageId: "img-smartwatch",
     active: true,
@@ -110,6 +250,8 @@ export const MOCK_PRODUCTS: Product[] = [
     price: 7900,
     compareAtPrice: null,
     currency: "EUR",
+    brandId: "b-orbit",
+    attributes: { display: "lcd", batteryDays: 10, gps: false, waterResistant: true },
     images: [{ id: "img-fitness-band", src: "/images/fitness-band.svg" }],
     primaryImageId: "img-fitness-band",
     active: true,
@@ -132,6 +274,8 @@ export const MOCK_PRODUCTS: Product[] = [
     price: 13900,
     compareAtPrice: null,
     currency: "EUR",
+    brandId: "b-vertex",
+    attributes: { switchType: "linear", layout: "75", backlit: true },
     images: [{ id: "img-keyboard", src: "/images/keyboard.svg" }],
     primaryImageId: "img-keyboard",
     active: true,
@@ -165,11 +309,13 @@ export const MOCK_PRODUCTS: Product[] = [
     price: 8990,
     compareAtPrice: 10900,
     currency: "EUR",
+    brandId: "b-halo",
+    attributes: { connectivity: ["bluetooth", "wired"], form: "speaker", batteryHours: 12, noiseCancelling: false },
     images: [{ id: "img-speaker", src: "/images/speaker.svg" }],
     primaryImageId: "img-speaker",
     active: true,
     adjustments: [],
-    categoryId: "cat-3",
+    categoryId: "cat-1",
     tags: ["desk", "audio"],
     rating: 4.3,
     stock: 0,
@@ -187,6 +333,8 @@ export const MOCK_PRODUCTS: Product[] = [
     price: 6490,
     compareAtPrice: null,
     currency: "EUR",
+    brandId: "b-lumen",
+    attributes: { material: ["metal"], dishwasherSafe: false },
     images: [{ id: "img-lamp", src: "/images/lamp.svg" }],
     primaryImageId: "img-lamp",
     active: true,
@@ -209,6 +357,8 @@ export const MOCK_PRODUCTS: Product[] = [
     price: 1900,
     compareAtPrice: null,
     currency: "EUR",
+    brandId: "b-terra",
+    attributes: { material: ["ceramic"], dishwasherSafe: true },
     images: [{ id: "img-mug", src: "/images/mug.svg" }],
     primaryImageId: "img-mug",
     active: true,
@@ -249,14 +399,30 @@ export async function mockList(
     );
   }
 
-  if (filters.category) {
-    const cat = MOCK_CATEGORIES.find((c) => c.slug === filters.category);
-    if (cat) items = items.filter((p) => p.categoryId === cat.id);
+  // Category first: its filter specs decide which facets even apply.
+  const category = filters.category
+    ? MOCK_CATEGORIES.find((c) => c.slug === filters.category)
+    : undefined;
+
+  if (category) {
+    items = items.filter((p) => p.categoryId === category.id);
+    items = items.filter((p) =>
+      matchesAttributes(p, category.filters, filters.attributes)
+    );
   }
 
-  const maxPrice = filters.maxPrice;
+  if (filters.brand) {
+    items = items.filter((p) => p.brandId === filters.brand);
+  }
+
+  // Price bounds compare against what the shopper actually pays, so a
+  // discounted product shows up under the price it is sold at.
+  const { minPrice, maxPrice } = filters;
+  if (typeof minPrice === "number" && minPrice > 0) {
+    items = items.filter((p) => effectivePrice(p) >= minPrice);
+  }
   if (typeof maxPrice === "number" && maxPrice > 0) {
-    items = items.filter((p) => p.price <= maxPrice);
+    items = items.filter((p) => effectivePrice(p) <= maxPrice);
   }
 
   const minRating = filters.minRating;

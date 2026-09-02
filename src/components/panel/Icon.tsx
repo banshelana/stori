@@ -21,6 +21,7 @@ const ICONS: Record<string, string> = {
   trendUp: "M23 6l-9.5 9.5-5-5L1 18M17 6h6v6",
   trendDown: "M23 18l-9.5-9.5-5 5L1 6M17 18h6v-6",
   search: "M11 19a8 8 0 1 0 0-16 8 8 0 0 0 0 16zM21 21l-4.35-4.35",
+  filter: "M22 3H2l8 9.46V19l4 2v-8.54z",
   check: "M20 6 9 17l-5-5",
   send: "M22 2 11 13M22 2l-7 20-4-9-9-4z",
   eye: "M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8zM12 15a3 3 0 1 0 0-6 3 3 0 0 0 0 6z",

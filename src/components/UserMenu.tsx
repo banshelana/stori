@@ -58,17 +58,20 @@ export function UserMenu({
   if (!ready) return <div className="h-10 w-10" aria-hidden />;
 
   if (!user) {
+    // Two buttons plus the cart and locale switcher overflow a 375px
+    // header, so below `sm` only the sign-in link shows — the register
+    // link lives on that page anyway.
     return (
-      <div className="flex items-center gap-2">
+      <div className="flex shrink-0 items-center gap-2">
         <Link
           href={href("/login")}
-          className="rounded-lg px-3 py-1.5 text-sm font-medium text-slate-600 hover:bg-slate-100 hover:text-slate-900"
+          className="whitespace-nowrap rounded-lg px-2 py-1.5 text-sm font-medium text-slate-600 hover:bg-slate-100 hover:text-slate-900 sm:px-3"
         >
           {t("nav.login")}
         </Link>
         <Link
           href={href("/register")}
-          className="rounded-lg bg-indigo-600 px-3 py-1.5 text-sm font-semibold text-white hover:bg-indigo-700"
+          className="hidden whitespace-nowrap rounded-lg bg-indigo-600 px-3 py-1.5 text-sm font-semibold text-white hover:bg-indigo-700 sm:inline-block"
         >
           {t("nav.register")}
         </Link>

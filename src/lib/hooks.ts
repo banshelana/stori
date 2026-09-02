@@ -51,18 +51,17 @@ function useSourceData<T>(
 export function useProducts(filters: SearchFilters) {
   const { source } = useDataSource();
   const { locale } = useI18n();
+
+  // One serialised key rather than a hand-listed dependency per field.
+  // Listing them individually silently stopped refetching the moment new
+  // filters (brand, price range, category facets) were added, and a
+  // nested object like `attributes` cannot be compared by identity
+  // anyway — useFilters builds a fresh one every render.
+  const key = JSON.stringify(filters);
+
   return useSourceData<Product[]>(
     () => listProducts(source, filters, locale),
-    [
-      source,
-      locale,
-      filters.q,
-      filters.category,
-      filters.maxPrice,
-      filters.minRating,
-      filters.inStock,
-      filters.sort,
-    ]
+    [source, locale, key]
   );
 }
 

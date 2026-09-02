@@ -153,7 +153,9 @@
     "orderLines": "Order lines",
     "subRole": "Access level",
     "initialPassword": "Initial password",
-    "initialPasswordHint": "The customer can change this after signing in."
+    "initialPasswordHint": "The customer can change this after signing in.",
+    "locations": "Locations",
+    "locationsHint": "Countries, provinces and cities used by the address form."
   },
   "account": {
     "title": "My account",
@@ -264,7 +266,16 @@
     "featured": "Show in featured",
     "ratingLabel": "Rating",
     "priceHint": "In minor units (cents).",
-    "description": "Description"
+    "description": "Description",
+    "lowStock": "Only {count} left",
+    "filters": "Filters",
+    "clearFilters": "Clear all",
+    "brand": "Brand",
+    "priceRange": "Price",
+    "priceMin": "Minimum price",
+    "priceMax": "Maximum price",
+    "minRating": "Rating",
+    "inStockOnly": "In stock only"
   },
   "cart": {
     "title": "Your cart",
@@ -326,7 +337,9 @@
     "featureSupport": "Real support",
     "featureSupportBody": "Talk to a person, in your own language.",
     "ctaTitle": "Ready to look around?",
-    "ctaBody": "The whole catalog is a click away."
+    "ctaBody": "The whole catalog is a click away.",
+    "searchPlaceholder": "Search products…",
+    "seeAllResults": "See all results"
   },
   "review": {
     "body": "Review",
@@ -393,5 +406,42 @@
       "percent": "% of price",
       "amount": "Fixed amount"
     }
+  },
+  "geo": {
+    "countries": "Countries",
+    "provinces": "Provinces",
+    "cities": "Cities",
+    "newCountry": "New country",
+    "editCountry": "Edit country",
+    "deleteCountry": "Delete this country?",
+    "newProvince": "New province",
+    "editProvince": "Edit province",
+    "deleteProvince": "Delete this province?",
+    "newCity": "New city",
+    "editCity": "Edit city",
+    "deleteCity": "Delete this city?",
+    "searchCountries": "Search countries",
+    "searchProvinces": "Search provinces",
+    "searchCities": "Search cities",
+    "iso2": "ISO code",
+    "iso2Hint": "Two letters, e.g. IR.",
+    "iso2Invalid": "Enter a two-letter code.",
+    "dialCode": "Dial code",
+    "coordinates": "Coordinates",
+    "latitude": "Latitude",
+    "longitude": "Longitude",
+    "latInvalid": "Latitude must be between -90 and 90.",
+    "lonInvalid": "Longitude must be between -180 and 180.",
+    "parentHint": "Records are linked by this, so it cannot be empty.",
+    "orphaned": "Missing parent",
+    "cannotDelete": "Cannot delete",
+    "countryInUse": "This country still has {provinces} provinces and {cities} cities. Remove or reassign those first.",
+    "provinceInUse": "This province still has {cities} cities. Remove or reassign those first.",
+    "pickOnMap": "Pin your location",
+    "pickedLocation": "Selected location",
+    "noLocationPicked": "Click the map to drop a pin, or drag it to adjust.",
+    "useMyLocation": "Use my location",
+    "geolocationUnavailable": "Your browser does not support location lookup.",
+    "geolocationDenied": "Could not get your location. Click the map instead."
   }
 }

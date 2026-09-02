@@ -25,6 +25,8 @@ export type Permission =
   | "contacts.write"
   | "messages.view"
   | "messages.send"
+  | "geo.view"
+  | "geo.manage"
   | "settings.manage"
   // Customer surfaces
   | "account.view"
@@ -44,6 +46,12 @@ export interface UserAddress {
   floor?: string;
   unit?: string;
   postalCode: string;
+  /**
+   * Picked on the map. Optional: an address entered before the map
+   * existed, or by someone who declines to place a pin, is still valid.
+   */
+  lat?: number;
+  lon?: number;
   isDefault?: boolean;
 }
 

@@ -114,6 +114,10 @@ export function ProductsSection() {
       if (editing === "new") {
         await productsRepo.create({
           ...payload,
+          // Brand and facets are edited from the catalogue import
+          // flow, not this form; a new product starts unclassified.
+          brandId: null,
+          attributes: {},
           createdAt: new Date().toISOString().slice(0, 10),
         });
       } else if (editing) {

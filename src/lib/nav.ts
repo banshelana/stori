@@ -62,6 +62,12 @@ export const ADMIN_NAV: NavItem[] = [
     icon: "chat",
     permission: "messages.view",
   },
+  {
+    href: "/admin/locations",
+    labelKey: "admin.locations",
+    icon: "pin",
+    permission: "geo.view",
+  },
 ];
 
 export const ACCOUNT_NAV: NavItem[] = [

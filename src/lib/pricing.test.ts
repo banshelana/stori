@@ -35,6 +35,8 @@ function product(price: number, adjustments: PriceAdjustment[] = []): Product {
     price,
     compareAtPrice: null,
     currency: "EUR",
+    brandId: null,
+    attributes: {},
     images: [],
     primaryImageId: null,
     active: true,

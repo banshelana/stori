@@ -275,6 +275,92 @@ html[lang="fa"] body {
   width: 100%;
 }
 
+/* ---------------------------------------------------------------
+   Dual-thumb range input.
+
+   Two <input type="range"> elements are stacked on one track, so the
+   inputs themselves must not swallow pointer events — only their
+   thumbs do. That is what makes both handles independently draggable
+   while each stays a real, keyboard-operable slider.
+   --------------------------------------------------------------- */
+.range-thumb {
+  pointer-events: none;
+}
+
+.range-thumb::-webkit-slider-runnable-track {
+  background: transparent;
+  height: 100%;
+}
+.range-thumb::-moz-range-track {
+  background: transparent;
+  height: 100%;
+}
+
+.range-thumb::-webkit-slider-thumb {
+  pointer-events: auto;
+  -webkit-appearance: none;
+  appearance: none;
+  height: 1.125rem;
+  width: 1.125rem;
+  border-radius: 9999px;
+  background: #fff;
+  border: 2px solid var(--color-brand-500);
+  box-shadow: 0 1px 4px rgb(15 23 42 / 0.25);
+  cursor: grab;
+  transition: transform 0.15s ease;
+}
+.range-thumb::-webkit-slider-thumb:active {
+  cursor: grabbing;
+  transform: scale(1.15);
+}
+
+.range-thumb::-moz-range-thumb {
+  pointer-events: auto;
+  height: 1.125rem;
+  width: 1.125rem;
+  border-radius: 9999px;
+  background: #fff;
+  border: 2px solid var(--color-brand-500);
+  box-shadow: 0 1px 4px rgb(15 23 42 / 0.25);
+  cursor: grab;
+}
+
+.range-thumb:focus-visible::-webkit-slider-thumb {
+  outline: 2px solid var(--color-brand);
+  outline-offset: 2px;
+}
+.range-thumb:focus-visible::-moz-range-thumb {
+  outline: 2px solid var(--color-brand);
+  outline-offset: 2px;
+}
+
+/* ---------------------------------------------------------------
+   Map pin.
+
+   Rendered through a Leaflet divIcon rather than its default image
+   marker: the built-in icon resolves its PNG by relative URL, which
+   breaks under a bundler, and this matches the rest of the UI.
+   --------------------------------------------------------------- */
+.map-pin {
+  display: block;
+  width: 1.5rem;
+  height: 1.5rem;
+  border-radius: 9999px 9999px 9999px 2px;
+  transform: rotate(-45deg);
+  background: linear-gradient(135deg, var(--color-brand-500), var(--color-accent));
+  border: 2px solid #fff;
+  box-shadow: 0 3px 10px rgb(15 23 42 / 0.35);
+}
+
+/* Leaflet's own chrome, toned down to match the app. */
+.leaflet-container {
+  font: inherit;
+  background: theme(colors.slate.100);
+}
+.leaflet-control-attribution {
+  font-size: 10px;
+}
+
 /* Scrollbar */
 ::-webkit-scrollbar {
   width: 10px;

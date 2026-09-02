@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { FeaturedProducts } from "@/components/FeaturedProducts";
+import { HeroSearch } from "@/components/HeroSearch";
 import { Icon } from "@/components/panel/Icon";
 import { SiteShell } from "@/components/SiteShell";
 import { Aurora } from "@/components/visual/Aurora";
@@ -119,6 +120,13 @@ export default async function HomePage({
                   <Icon name="star" className="h-4 w-4" />
                   {t("home.topRated")}
                 </Link>
+              </div>
+
+              <div
+                className="animate-fade-up"
+                style={{ animationDelay: "320ms" }}
+              >
+                <HeroSearch />
               </div>
             </div>
 

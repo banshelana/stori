@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { Icon } from "@/components/panel/Icon";
+import { MapPicker } from "@/components/MapPicker";
 import {
   CheckboxField,
   SelectField,
@@ -22,6 +23,7 @@ import {
   isValidGeoSelection,
   provincesOf,
 } from "@/lib/data/geo";
+import type { LatLon } from "@/lib/map";
 import { toAsciiDigits, validatePostalCode, validateRequired } from "@/lib/validation";
 
 const EMPTY: Omit<UserAddress, "id"> = {
@@ -34,6 +36,8 @@ const EMPTY: Omit<UserAddress, "id"> = {
   floor: "",
   unit: "",
   postalCode: "",
+  lat: undefined,
+  lon: undefined,
 };
 
 export function AddressBook() {
@@ -195,6 +199,15 @@ function AddressForm({
   const provinces = provincesOf(form.countryId);
   const cities = citiesOf(form.provinceId);
 
+  // Where the map opens before a pin exists. Cities carry coordinates in
+  // the reference data, so choosing one already puts the shopper in the
+  // right place.
+  const selectedCity = findCity(form.cityId);
+  const cityCenter =
+    selectedCity?.lat != null && selectedCity.lon != null
+      ? { lat: selectedCity.lat, lon: selectedCity.lon }
+      : null;
+
   function set(patch: Partial<UserAddress>) {
     setForm((prev) => ({ ...prev, ...patch }));
     Object.keys(patch).forEach(clear);
@@ -313,6 +326,20 @@ function AddressForm({
           inputMode="numeric"
         />
       </div>
+
+      {/* Optional: an address is valid without a pin. The map opens on
+          the chosen city so the shopper starts near where they live. */}
+      <MapPicker
+        value={
+          form.lat != null && form.lon != null
+            ? { lat: form.lat, lon: form.lon }
+            : null
+        }
+        center={cityCenter}
+        onChange={(next: LatLon | null) =>
+          set({ lat: next?.lat, lon: next?.lon })
+        }
+      />
 
       <CheckboxField
         label={t("address.setDefault")}

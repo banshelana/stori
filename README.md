@@ -251,6 +251,120 @@ Up to 6 images per product. Change `max` on `GalleryUpload` to adjust.
 
 ---
 
+## Locations (admin)
+
+`/admin/locations` manages the reference geography the address form depends on, as three tabs behind the `geo.view` / `geo.manage` permissions.
+
+| Tab | Foreign key | Notes |
+| --- | --- | --- |
+| Countries | — | Independent. ISO-2 code and dial code. |
+| Provinces | `countryId` → country | Country select is required; the table shows the parent and a city count. |
+| Cities | `provinceId` → province | Country narrows the province list but is *not* stored — a city's only foreign key is its province. Optional lat/lon. |
+
+Names are per-locale (`GeoName`), so every record has one field per language.
+
+### Referential integrity
+
+The mock source has no database to enforce foreign keys, so deletes are guarded in the UI:
+
+- Deleting a **country** that still has provinces is refused, naming the counts ("still has 6 provinces and 15 cities").
+- Deleting a **province** that still has cities is refused the same way.
+- A row whose parent has vanished renders a red **Missing parent** badge rather than a blank cell, so orphans are visible instead of silent.
+
+**Your backend must enforce the same constraints.** This is a UI courtesy, not the guarantee — `src/lib/data/geo.test.ts` asserts the invariants hold in the seed data, including that a country/province/city triple from mismatched parents is rejected.
+
+The tab strip follows the WAI-ARIA tabs pattern: arrow keys move between tabs, Home/End jump to the ends, and only the active tab is in the tab order.
+
+---
+
+## Map location picker
+
+Customers can pin their exact location when adding an address; `UserAddress` gained optional `lat`/`lon`.
+
+### This is the one part of the app that uses the network
+
+Everything else — fonts, styles, assets — is local. Leaflet itself is a bundled dependency, but **map tiles are fetched from a remote server at runtime**. Two environment variables control it:
+
+| Variable | Default |
+| --- | --- |
+| `NEXT_PUBLIC_MAP_TILE_URL` | `https://tile.openstreetmap.org/{z}/{x}/{y}.png` |
+| `NEXT_PUBLIC_MAP_ATTRIBUTION` | OpenStreetMap contributors |
+
+Point them at your own tile server to make the app fully offline again. If you stay on OpenStreetMap, their [tile usage policy](https://operations.osmfoundation.org/policies/tiles/) applies: the attribution must stay visible, and heavy or automated use is not permitted on the public endpoint. The attribution renders twice on purpose — Leaflet's own in-map control, plus a copy below the map that survives the map failing to load.
+
+### Behaviour
+
+- Opens centred on the **selected city**, using the coordinates in the reference data, so the shopper starts where they live rather than in the middle of the country.
+- Click to drop a pin, drag to adjust, or **Use my location** via the browser geolocation API.
+- Panning is bounded to the region around Iran rather than the whole globe.
+- Scroll-wheel zoom is off until the map is clicked, so a wheel over an embedded map still scrolls the page.
+- Coordinates round to six decimals (~11 cm), which is far more than an address needs.
+- The pin is optional — an address saves fine without one.
+
+### Implementation notes
+
+Leaflet touches `window` on import, so it is pulled in with a dynamic `import()` inside an effect; a top-level import would break the server render of any page holding the component. The marker is a `divIcon` rather than Leaflet's default image marker, whose PNG is resolved by relative URL and breaks under a bundler.
+
+---
+
+## Catalog filters
+
+The products page carries two tiers of filter.
+
+**Global** — search, category, brand, price range, minimum rating, in-stock. These apply everywhere and live in the filter bar itself.
+
+**Per-category** — each category declares its own facets, and they appear only while that category is selected.
+
+### Filters are data, not code
+
+`Category.filters` is a `FilterSpec[]`, and a `FilterSpec` is plain serialisable data:
+
+```ts
+{ key: "connectivity", kind: "multi", label: { en: "Connectivity", fa: "اتصال" },
+  options: [{ value: "bluetooth", label: { en: "Bluetooth", fa: "بلوتوث" } }] }
+```
+
+`kind` is one of `select | multi | range | boolean`, and `key` addresses `Product.attributes[key]`.
+
+Nothing in a spec references a component or a function, so the whole list moves to the database unchanged — a `filters` JSON column on `categories`, or a joined `filters` table. When categories load from the API, their facets travel with them and the storefront renders whatever arrives. **Adding a facet to a category is a data edit, not a deploy.**
+
+`FilterBar` has exactly one `switch` on `kind`; everything else is generic.
+
+### URL encoding
+
+Every filter is a query parameter, so any filtered view is shareable and survives a reload:
+
+```
+/en/products?category=audio&brand=b-aurora&maxPrice=20000&f_form=over-ear&f_connectivity=bluetooth
+```
+
+Category facets are namespaced with `f_`. Categories come from the database, so their keys are not known at build time — the prefix is the only thing guaranteeing a facet named `sort` or `q` can never collide with a reserved parameter. Multi-select repeats the parameter (`?f_material=metal&f_material=glass`).
+
+Within a facet, values are ORed; facets are ANDed with each other.
+
+### Two behaviours worth knowing
+
+- **Switching category clears the previous category's facets.** They address attributes the new category does not declare, so leaving them in the URL would silently return nothing.
+- **Price filters on what the shopper pays**, not the list price — bounds run against `effectivePrice`, so a discounted product appears under the price it actually sells at. Slider bounds are derived from the catalog rather than hardcoded, so they stay correct as products are added or repriced.
+
+### The price slider
+
+Two native `<input type="range">` elements stacked on one track, rather than a custom pointer widget. Each thumb is then a real slider — keyboard operable and announced by screen readers for free. The inputs are transparent with `pointer-events: none`; only their thumbs take pointer events, which is what makes both handles independently draggable. Dragging is local state, committed through a 350 ms debounce so the URL updates once the shopper settles.
+
+### Testing
+
+`src/lib/attributes.test.ts` covers the matching rules — OR within a facet, AND across facets, range bounds, and the case that bites: an unchecked boolean must not exclude anything.
+
+`src/lib/data/catalog.test.ts` guards the contract between the two halves. A facet a category declares is useless if no product carries it, and an attribute no category declares can never be filtered — so it asserts every product's attribute keys match its category's declared keys exactly, that facet values are valid options, and that brand references resolve. This caught a real bug: a desktop speaker sitting in "Desk & Office" while carrying audio facets, so none of its attributes were reachable.
+
+Node's test runner cannot resolve the `@/` alias on its own, so `scripts/alias-loader.mjs` provides a resolve hook, registered via `--import`. Without it, tests would be limited to leaf modules with no internal imports.
+
+### Not yet wired
+
+The admin product form does not edit brand or attributes — products created there start with `brandId: null` and `attributes: {}`, so they will not match any category facet until those are set. The natural next step is to render the attribute inputs from the selected category's own `FilterSpec[]`, which is the same data the storefront already reads.
+
+---
+
 ## Look and motion
 
 The visual layer is CSS-first: tokens and keyframes in `src/app/globals.css`, two small components in `src/components/visual/`, and no animation library.

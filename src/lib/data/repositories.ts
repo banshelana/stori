@@ -12,6 +12,14 @@ import {
   type Review,
   type SmsMessage,
 } from "@/lib/data/commerce";
+import {
+  CITIES,
+  COUNTRIES,
+  PROVINCES,
+  type City,
+  type Country,
+  type Province,
+} from "@/lib/data/geo";
 import { MOCK_PRODUCTS } from "@/lib/data/mock";
 import { effectivePrice } from "@/lib/pricing";
 import { MOCK_USERS, type MockUser } from "@/lib/data/users";
@@ -112,5 +120,42 @@ export const messagesRepo = createRepository<SmsMessage>({
     recipient: (m) => m.recipient,
     sentAt: (m) => m.sentAt,
     status: (m) => m.status,
+  },
+});
+
+// ---------------------------------------------------------------
+// Reference geography. Three tables with foreign keys between them:
+// a province belongs to a country, a city to a province. Deletes are
+// guarded in the UI by the count helpers in geo.ts.
+// ---------------------------------------------------------------
+
+export const countriesRepo = createRepository<Country>({
+  data: COUNTRIES,
+  idPrefix: "ctry",
+  searchable: (c) => [c.name.en, c.name.fa, c.iso2, c.dialCode],
+  sorters: {
+    name: (c) => c.name.en,
+    iso2: (c) => c.iso2,
+    dialCode: (c) => c.dialCode,
+  },
+});
+
+export const provincesRepo = createRepository<Province>({
+  data: PROVINCES,
+  idPrefix: "prov",
+  searchable: (p) => [p.name.en, p.name.fa],
+  sorters: {
+    name: (p) => p.name.en,
+    countryId: (p) => p.countryId,
+  },
+});
+
+export const citiesRepo = createRepository<City>({
+  data: CITIES,
+  idPrefix: "city",
+  searchable: (c) => [c.name.en, c.name.fa],
+  sorters: {
+    name: (c) => c.name.en,
+    provinceId: (c) => c.provinceId,
   },
 });

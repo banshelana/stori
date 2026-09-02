@@ -22,6 +22,8 @@ const ADMIN_FULL: Permission[] = [
   "contacts.write",
   "messages.view",
   "messages.send",
+  "geo.view",
+  "geo.manage",
   "settings.manage",
 ];
 

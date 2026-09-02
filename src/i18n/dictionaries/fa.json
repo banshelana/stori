@@ -153,7 +153,9 @@
     "orderLines": "اقلام سفارش",
     "subRole": "سطح دسترسی",
     "initialPassword": "رمز عبور اولیه",
-    "initialPasswordHint": "مشتری می‌تواند پس از ورود آن را تغییر دهد."
+    "initialPasswordHint": "مشتری می‌تواند پس از ورود آن را تغییر دهد.",
+    "locations": "مکان‌ها",
+    "locationsHint": "کشورها، استان‌ها و شهرهایی که فرم آدرس از آن‌ها استفاده می‌کند."
   },
   "account": {
     "title": "حساب کاربری",
@@ -264,7 +266,16 @@
     "featured": "نمایش در منتخب",
     "ratingLabel": "امتیاز",
     "priceHint": "بر حسب واحد خرد (سنت).",
-    "description": "توضیحات"
+    "description": "توضیحات",
+    "lowStock": "تنها {count} عدد باقی مانده",
+    "filters": "فیلترها",
+    "clearFilters": "پاک کردن همه",
+    "brand": "برند",
+    "priceRange": "قیمت",
+    "priceMin": "کمترین قیمت",
+    "priceMax": "بیشترین قیمت",
+    "minRating": "امتیاز",
+    "inStockOnly": "فقط کالاهای موجود"
   },
   "cart": {
     "title": "سبد خرید شما",
@@ -326,7 +337,9 @@
     "featureSupport": "پشتیبانی واقعی",
     "featureSupportBody": "با یک انسان، به زبان خودتان گفتگو کنید.",
     "ctaTitle": "آماده‌اید نگاهی بیندازید؟",
-    "ctaBody": "کل کاتالوگ یک کلیک با شما فاصله دارد."
+    "ctaBody": "کل کاتالوگ یک کلیک با شما فاصله دارد.",
+    "searchPlaceholder": "جستجوی محصولات…",
+    "seeAllResults": "مشاهده همه نتایج"
   },
   "review": {
     "body": "متن نظر",
@@ -393,5 +406,42 @@
       "percent": "درصدی از قیمت",
       "amount": "مبلغ ثابت"
     }
+  },
+  "geo": {
+    "countries": "کشورها",
+    "provinces": "استان‌ها",
+    "cities": "شهرها",
+    "newCountry": "کشور جدید",
+    "editCountry": "ویرایش کشور",
+    "deleteCountry": "این کشور حذف شود؟",
+    "newProvince": "استان جدید",
+    "editProvince": "ویرایش استان",
+    "deleteProvince": "این استان حذف شود؟",
+    "newCity": "شهر جدید",
+    "editCity": "ویرایش شهر",
+    "deleteCity": "این شهر حذف شود؟",
+    "searchCountries": "جستجوی کشورها",
+    "searchProvinces": "جستجوی استان‌ها",
+    "searchCities": "جستجوی شهرها",
+    "iso2": "کد ایزو",
+    "iso2Hint": "دو حرف، مثلاً IR.",
+    "iso2Invalid": "کد دو حرفی وارد کنید.",
+    "dialCode": "پیش‌شماره",
+    "coordinates": "مختصات",
+    "latitude": "عرض جغرافیایی",
+    "longitude": "طول جغرافیایی",
+    "latInvalid": "عرض جغرافیایی باید بین ۹۰- و ۹۰ باشد.",
+    "lonInvalid": "طول جغرافیایی باید بین ۱۸۰- و ۱۸۰ باشد.",
+    "parentHint": "رکوردها از این طریق به هم مرتبط می‌شوند و نمی‌تواند خالی باشد.",
+    "orphaned": "والد یافت نشد",
+    "cannotDelete": "حذف ممکن نیست",
+    "countryInUse": "این کشور هنوز {provinces} استان و {cities} شهر دارد. ابتدا آن‌ها را حذف یا منتقل کنید.",
+    "provinceInUse": "این استان هنوز {cities} شهر دارد. ابتدا آن‌ها را حذف یا منتقل کنید.",
+    "pickOnMap": "موقعیت خود را روی نقشه انتخاب کنید",
+    "pickedLocation": "موقعیت انتخاب‌شده",
+    "noLocationPicked": "روی نقشه کلیک کنید تا نشانگر قرار گیرد، یا آن را جابه‌جا کنید.",
+    "useMyLocation": "موقعیت فعلی من",
+    "geolocationUnavailable": "مرورگر شما از تشخیص موقعیت پشتیبانی نمی‌کند.",
+    "geolocationDenied": "موقعیت شما دریافت نشد. روی نقشه کلیک کنید."
   }
 }
