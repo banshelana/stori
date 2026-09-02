@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { AddToCartButton } from "@/components/AddToCartButton";
+import { FavoriteButton } from "@/components/FavoriteButton";
 import { Icon } from "@/components/panel/Icon";
 import { Price } from "@/components/Price";
 import { Rating } from "@/components/Rating";
@@ -11,6 +12,8 @@ import { useLocaleHref } from "@/i18n/navigation";
 import { formatNumber } from "@/lib/format";
 import { effectivePrice, strikeThroughPrice } from "@/lib/pricing";
 import { primaryImageSrc } from "@/lib/product";
+import { useSettings } from "@/lib/settings-context";
+import { isLowStock } from "@/lib/settings";
 import type { Product } from "@/lib/types";
 
 /** Whole-percent saving, for the discount badge. */
@@ -23,11 +26,12 @@ function discountPercent(product: Product): number | null {
 
 export function ProductCard({ product }: { product: Product }) {
   const { t, locale } = useI18n();
+  const { settings } = useSettings();
   const href = useLocaleHref();
 
   const productHref = href(`/products/${product.slug}`);
   const soldOut = product.stock <= 0;
-  const lowStock = !soldOut && product.stock <= 5;
+  const lowStock = !soldOut && isLowStock(product.stock, settings);
   const saving = discountPercent(product);
 
   return (
@@ -72,12 +76,17 @@ export function ProductCard({ product }: { product: Product }) {
           )}
         </div>
 
+        {/* Above the stretched title link so it stays clickable. */}
+        <div className="absolute top-2.5 end-2.5 z-10">
+          <FavoriteButton productId={product.id} />
+        </div>
+
         {/* Quick-view affordance. Hidden from touch, where hover is a lie. */}
         <Link
           href={productHref}
           tabIndex={-1}
           aria-hidden
-          className="absolute bottom-2.5 end-2.5 hidden translate-y-2 items-center gap-1.5 rounded-full bg-white/95 px-3 py-1.5 text-xs font-semibold text-slate-800 opacity-0 shadow-md backdrop-blur transition-all duration-300 group-hover:translate-y-0 group-hover:opacity-100 md:inline-flex"
+          className="absolute bottom-2.5 start-2.5 hidden translate-y-2 items-center gap-1.5 rounded-full bg-white/95 px-3 py-1.5 text-xs font-semibold text-slate-800 opacity-0 shadow-md backdrop-blur transition-all duration-300 group-hover:translate-y-0 group-hover:opacity-100 md:inline-flex"
         >
           <Icon name="eye" className="h-3.5 w-3.5" />
           {t("common.view")}

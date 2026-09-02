@@ -6,6 +6,9 @@ import { I18nProvider } from "@/i18n/I18nProvider";
 import { AuthProvider } from "@/lib/auth/auth-context";
 import { CartProvider } from "@/lib/cart-context";
 import { DataSourceProvider } from "@/lib/data/source-context";
+import { CouponProvider } from "@/lib/coupon-context";
+import { FavoritesProvider } from "@/lib/favorites-context";
+import { SettingsProvider } from "@/lib/settings-context";
 import { fontEn, fontFa } from "@/lib/fonts";
 import "../globals.css";
 
@@ -51,9 +54,15 @@ export default async function LocaleLayout({
         </noscript>
         <I18nProvider locale={typedLocale} dict={dict}>
           <AuthProvider>
-            <DataSourceProvider>
-              <CartProvider>{children}</CartProvider>
-            </DataSourceProvider>
+            <SettingsProvider>
+              <DataSourceProvider>
+                <CartProvider>
+                  <FavoritesProvider>
+                    <CouponProvider>{children}</CouponProvider>
+                  </FavoritesProvider>
+                </CartProvider>
+              </DataSourceProvider>
+            </SettingsProvider>
           </AuthProvider>
         </I18nProvider>
       </body>

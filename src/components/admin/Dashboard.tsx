@@ -9,6 +9,7 @@ import {
   StatCard,
   TableSkeleton,
 } from "@/components/panel/ui";
+import { LowStockCard } from "@/components/admin/LowStockCard";
 import { useI18n } from "@/i18n/I18nProvider";
 import { localized } from "@/i18n/localized";
 import { formatDate, formatNumber, formatPrice } from "@/lib/format";
@@ -134,6 +135,7 @@ export function Dashboard() {
         </Card>
 
         <div className="space-y-6">
+          <LowStockCard />
           <Card>
             <h2 className="mb-4 font-bold text-slate-900">
               {t("admin.topProducts")}

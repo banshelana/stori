@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
+import { DateField } from "@/components/form/DateField";
 import { Icon } from "@/components/panel/Icon";
 import {
   Badge,
@@ -14,6 +15,9 @@ import { localized } from "@/i18n/localized";
 import { useAuth } from "@/lib/auth/auth-context";
 import type { Order, OrderStatus } from "@/lib/data/commerce";
 import { ordersRepo } from "@/lib/data/repositories";
+import { useSettings } from "@/lib/settings-context";
+import { productsRepo } from "@/lib/data/repositories";
+import { nextStock, stockDeltas } from "@/lib/inventory";
 import { formatDate, formatNumber, formatPrice } from "@/lib/format";
 import {
   filterQueue,
@@ -38,6 +42,7 @@ export function OrderQueueSection() {
   const { t, locale } = useI18n();
   const { can } = useAuth();
   const queue = useOrderQueue();
+  const { settings } = useSettings();
 
   const canWrite = can("sales.write");
 
@@ -102,6 +107,24 @@ export function OrderQueueSection() {
         status: next,
         updatedAt: new Date().toISOString().slice(0, 10),
       });
+
+      // Cancelling releases the units the order was holding.
+      if (next === "canceled") {
+        for (const [productId, delta] of stockDeltas(
+          order.lines.map((l) => ({
+            productId: l.productId,
+            quantity: l.quantity,
+          })),
+          "restore"
+        )) {
+          const product = productsRepo.all().find((p) => p.id === productId);
+          if (!product) continue;
+          await productsRepo.update(productId, {
+            stock: nextStock(product.stock, delta),
+          });
+        }
+      }
+
       queue.reload();
     } finally {
       setBusyId(null);
@@ -177,25 +200,20 @@ export function OrderQueueSection() {
             </select>
           </Field>
 
-          <Field label={t("queue.dateRange")}>
-            <div className="flex items-center gap-2">
-              <input
-                type="date"
-                value={dateFrom}
-                onChange={(e) => setDateFrom(e.target.value)}
-                aria-label={t("queue.dateFrom")}
-                className="w-full rounded-lg border border-slate-200 bg-slate-50 px-2 py-2 text-sm outline-none focus:border-indigo-500 focus:bg-white"
-              />
-              <span className="text-slate-400">–</span>
-              <input
-                type="date"
-                value={dateTo}
-                onChange={(e) => setDateTo(e.target.value)}
-                aria-label={t("queue.dateTo")}
-                className="w-full rounded-lg border border-slate-200 bg-slate-50 px-2 py-2 text-sm outline-none focus:border-indigo-500 focus:bg-white"
-              />
-            </div>
-          </Field>
+          <div className="grid grid-cols-2 gap-2">
+            <DateField
+              label={t("queue.dateFrom")}
+              value={dateFrom}
+              onChange={setDateFrom}
+              max={dateTo || undefined}
+            />
+            <DateField
+              label={t("queue.dateTo")}
+              value={dateTo}
+              onChange={setDateTo}
+              min={dateFrom || undefined}
+            />
+          </div>
 
           <Field label={t("queue.priceRange")}>
             <div className="flex items-center gap-2">
@@ -267,6 +285,7 @@ export function OrderQueueSection() {
               isNew={queue.isUnseen(order)}
               customer={queue.lookupCustomer(order.userId)}
               canWrite={canWrite}
+              overdueAfterDays={settings.overdueAfterDays}
               busy={busyId === order.id}
               onAdvance={advance}
             />
@@ -283,6 +302,7 @@ function OrderCard({
   isNew,
   customer,
   canWrite,
+  overdueAfterDays,
   busy,
   onAdvance,
 }: {
@@ -291,12 +311,13 @@ function OrderCard({
   isNew: boolean;
   customer: { name: string; mobile: string } | undefined;
   canWrite: boolean;
+  overdueAfterDays: number;
   busy: boolean;
   onAdvance: (order: Order, next: OrderStatus) => void;
 }) {
   const { t, locale } = useI18n();
   const days = waitingDays(order);
-  const urgency = urgencyOf(days);
+  const urgency = urgencyOf(days, overdueAfterDays);
   const style = URGENCY_STYLE[urgency];
   const units = order.lines.reduce((sum, l) => sum + l.quantity, 0);
 

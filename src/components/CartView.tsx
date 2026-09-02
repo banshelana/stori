@@ -7,6 +7,10 @@ import { useLocaleHref } from "@/i18n/navigation";
 import { useCart } from "@/lib/cart-context";
 import { formatNumber, formatPrice } from "@/lib/format";
 import { useCartLines } from "@/lib/hooks";
+import { couponDiscount, useCouponCheck } from "@/lib/coupon-context";
+import { CouponField } from "@/components/CouponField";
+import { useSettings } from "@/lib/settings-context";
+import { shippingFor, taxFor } from "@/lib/settings";
 import { primaryImageSrc } from "@/lib/product";
 import { effectivePrice } from "@/lib/pricing";
 
@@ -15,6 +19,16 @@ export function CartView() {
   const { lines, missingIds, subtotal, currency, loading, error } =
     useCartLines();
   const { t, locale } = useI18n();
+  const { settings } = useSettings();
+
+  const couponCheck = useCouponCheck(subtotal);
+  const discount = couponDiscount(couponCheck);
+  // Shipping and tax apply after the discount, so a code that takes
+  // the basket over the free-shipping line still counts.
+  const discounted = Math.max(0, subtotal - discount);
+  const shipping = shippingFor(discounted, settings);
+  const tax = taxFor(discounted + shipping, settings);
+  const grandTotal = discounted + shipping + tax;
   const href = useLocaleHref();
 
   if (!hydrated) {
@@ -160,17 +174,45 @@ export function CartView() {
               {formatPrice(subtotal, currency, locale)}
             </dd>
           </div>
+          {discount > 0 && (
+            <div className="flex justify-between text-emerald-700">
+              <dt>{t("coupon.discount")}</dt>
+              <dd className="font-semibold">
+                −{formatPrice(discount, currency, locale)}
+              </dd>
+            </div>
+          )}
           <div className="flex justify-between">
             <dt className="text-slate-500">{t("cart.shipping")}</dt>
-            <dd className="font-medium text-emerald-600">{t("cart.free")}</dd>
+            <dd className="font-medium">
+              {shipping === 0 ? (
+                <span className="text-emerald-600">{t("cart.free")}</span>
+              ) : (
+                formatPrice(shipping, currency, locale)
+              )}
+            </dd>
           </div>
+          {tax > 0 && (
+            <div className="flex justify-between">
+              <dt className="text-slate-500">{t("settings.taxPercent")}</dt>
+              <dd className="font-medium">{formatPrice(tax, currency, locale)}</dd>
+            </div>
+          )}
           <div className="flex justify-between border-t border-slate-200 pt-3 text-base">
             <dt className="font-bold text-slate-900">{t("common.total")}</dt>
             <dd className="font-bold text-slate-900">
-              {formatPrice(subtotal, currency, locale)}
+              {formatPrice(grandTotal, currency, locale)}
             </dd>
           </div>
         </dl>
+
+        <div className="mt-4">
+          <CouponField
+            subtotal={subtotal}
+            currency={currency}
+            check={couponCheck}
+          />
+        </div>
 
         <Link
           href={href("/checkout")}

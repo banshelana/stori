@@ -9,6 +9,12 @@ import { useLocaleHref } from "@/i18n/navigation";
 import { useAuth } from "@/lib/auth/auth-context";
 import { useCart } from "@/lib/cart-context";
 import { ordersRepo } from "@/lib/data/repositories";
+import { couponsRepo } from "@/lib/data/repositories";
+import { couponDiscount, useCoupon, useCouponCheck } from "@/lib/coupon-context";
+import { shippingFor, taxFor } from "@/lib/settings";
+import { useSettings } from "@/lib/settings-context";
+import { productsRepo } from "@/lib/data/repositories";
+import { findShortages, nextStock, stockDeltas } from "@/lib/inventory";
 import { formatNumber, formatPrice } from "@/lib/format";
 import { useCartLines } from "@/lib/hooks";
 import { effectivePrice } from "@/lib/pricing";
@@ -18,7 +24,19 @@ export function CheckoutView() {
   const href = useLocaleHref();
   const { items, clear, hydrated } = useCart();
   const { user } = useAuth();
+  const { remove: removeCoupon } = useCoupon();
   const { lines, subtotal, currency, loading } = useCartLines();
+  const { settings } = useSettings();
+  // Read straight from the repository: cart lines snapshot price and
+  // title, but stock has to be the live number at the moment of order.
+  const allProducts = productsRepo.all();
+
+  const couponCheck = useCouponCheck(subtotal);
+  const discount = couponDiscount(couponCheck);
+  const discounted = Math.max(0, subtotal - discount);
+  const shipping = shippingFor(discounted, settings);
+  const tax = taxFor(discounted + shipping, settings);
+  const grandTotal = discounted + shipping + tax;
   const { t, locale } = useI18n();
   const [placed, setPlaced] = useState(false);
   // Controlled, so the values survive a re-render and are available
@@ -31,16 +49,42 @@ export function CheckoutView() {
   });
 
   const [placing, setPlacing] = useState(false);
+  const [stockError, setStockError] = useState<string | null>(null);
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     setPlacing(true);
+    setStockError(null);
 
     try {
       // A real order needs an account to belong to. A guest checkout
       // would need the API to mint a customer first, so for now the
       // signed-out path stays a demo confirmation.
       if (user && lines.length > 0) {
+        // Refuse rather than oversell, when the store asks us to.
+        if (settings.enforceStock) {
+          const shortages = findShortages(
+            lines.map(({ product, quantity }) => ({
+              productId: product.id,
+              quantity,
+            })),
+            (id) => allProducts.find((p) => p.id === id)?.stock
+          );
+          if (shortages.length > 0) {
+            setStockError(
+              shortages
+                .map((s) => {
+                  const product = allProducts.find((p) => p.id === s.productId);
+                  return `${
+                    product ? localized(product.title, locale) : s.productId
+                  } (${s.available})`;
+                })
+                .join(", ")
+            );
+            return;
+          }
+        }
+
         const reference = `ORD-${Date.now().toString().slice(-7)}`;
         await ordersRepo.create({
           reference,
@@ -55,7 +99,7 @@ export function CheckoutView() {
             quantity,
             unitPrice: effectivePrice(product),
           })),
-          total: subtotal,
+          total: grandTotal,
           currency,
           createdAt: new Date().toISOString().slice(0, 10),
           updatedAt: new Date().toISOString().slice(0, 10),
@@ -65,8 +109,31 @@ export function CheckoutView() {
       // Card details are deliberately not collected — a real integration
       // hands that to a payment provider so the card never touches this
       // application.
+      // Reserve the units this order takes out of inventory.
+      for (const [productId, delta] of stockDeltas(
+        lines.map(({ product, quantity }) => ({
+          productId: product.id,
+          quantity,
+        })),
+        "reserve"
+      )) {
+        const product = allProducts.find((p) => p.id === productId);
+        if (!product) continue;
+        await productsRepo.update(productId, {
+          stock: nextStock(product.stock, delta),
+        });
+      }
+
+      // A redeemed code counts against its usage limit.
+      if (couponCheck?.ok) {
+        await couponsRepo.update(couponCheck.coupon.id, {
+          usedCount: couponCheck.coupon.usedCount + 1,
+        });
+      }
+
       setPlaced(true);
       clear();
+      removeCoupon();
     } finally {
       setPlacing(false);
     }
@@ -173,10 +240,51 @@ export function CheckoutView() {
             </li>
           ))}
         </ul>
-        <div className="mt-4 flex justify-between border-t border-slate-200 pt-3 font-bold text-slate-900">
-          <span>{t("common.total")}</span>
-          <span>{formatPrice(subtotal, currency, locale)}</span>
-        </div>
+        <dl className="mt-4 space-y-1.5 border-t border-slate-200 pt-3 text-sm">
+          <div className="flex justify-between">
+            <dt className="text-slate-500">{t("cart.subtotal")}</dt>
+            <dd className="font-medium">
+              {formatPrice(subtotal, currency, locale)}
+            </dd>
+          </div>
+          {discount > 0 && (
+            <div className="flex justify-between text-emerald-700">
+              <dt>{t("coupon.discount")}</dt>
+              <dd className="font-semibold">
+                −{formatPrice(discount, currency, locale)}
+              </dd>
+            </div>
+          )}
+          <div className="flex justify-between">
+            <dt className="text-slate-500">{t("cart.shipping")}</dt>
+            <dd className="font-medium">
+              {shipping === 0 ? (
+                <span className="text-emerald-600">{t("cart.free")}</span>
+              ) : (
+                formatPrice(shipping, currency, locale)
+              )}
+            </dd>
+          </div>
+          {tax > 0 && (
+            <div className="flex justify-between">
+              <dt className="text-slate-500">{t("settings.taxPercent")}</dt>
+              <dd className="font-medium">{formatPrice(tax, currency, locale)}</dd>
+            </div>
+          )}
+          <div className="flex justify-between border-t border-slate-200 pt-2 text-base font-bold text-slate-900">
+            <dt>{t("common.total")}</dt>
+            <dd>{formatPrice(grandTotal, currency, locale)}</dd>
+          </div>
+        </dl>
+        {stockError && (
+          <p
+            role="alert"
+            className="mt-4 rounded-lg bg-rose-50 p-3 text-sm text-rose-700"
+          >
+            {t("checkout.stockShortage", { items: stockError })}
+          </p>
+        )}
+
         <button
           type="submit"
           disabled={placing}
@@ -184,7 +292,7 @@ export function CheckoutView() {
         >
           {placing
             ? t("common.loading")
-            : t("checkout.pay", { amount: formatPrice(subtotal, currency, locale) })}
+            : t("checkout.pay", { amount: formatPrice(grandTotal, currency, locale) })}
         </button>
       </aside>
     </form>

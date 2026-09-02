@@ -52,6 +52,12 @@ export const ADMIN_NAV: NavItem[] = [
     permission: "products.view",
   },
   {
+    href: "/admin/coupons",
+    labelKey: "admin.coupons",
+    icon: "tag",
+    permission: "sales.view",
+  },
+  {
     href: "/admin/payments",
     labelKey: "admin.payments",
     icon: "card",
@@ -81,6 +87,12 @@ export const ADMIN_NAV: NavItem[] = [
     icon: "pin",
     permission: "geo.view",
   },
+  {
+    href: "/admin/settings",
+    labelKey: "admin.settings",
+    icon: "settings",
+    permission: "settings.manage",
+  },
 ];
 
 export const ACCOUNT_NAV: NavItem[] = [
@@ -88,6 +100,12 @@ export const ACCOUNT_NAV: NavItem[] = [
     href: "/account/profile",
     labelKey: "account.profile",
     icon: "user",
+    permission: "account.view",
+  },
+  {
+    href: "/account/favorites",
+    labelKey: "account.favorites",
+    icon: "heart",
     permission: "account.view",
   },
   {

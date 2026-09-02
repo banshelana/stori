@@ -158,7 +158,13 @@
     "locationsHint": "Countries, provinces and cities used by the address form.",
     "viewLocation": "View location on map",
     "customerLocation": "Customer location",
-    "queue": "Order queue"
+    "queue": "Order queue",
+    "settings": "Settings",
+    "lowStock": "Low stock",
+    "lowStockHint": "At or below the threshold in Settings.",
+    "outOfStock": "Out of stock",
+    "stockOk": "Nothing running low.",
+    "coupons": "Coupons"
   },
   "account": {
     "title": "My account",
@@ -178,7 +184,8 @@
     "female": "Female",
     "other": "Prefer not to say",
     "profileCompletion": "Profile completion",
-    "profileSaved": "Your profile has been updated."
+    "profileSaved": "Your profile has been updated.",
+    "favorites": "Favourites"
   },
   "address": {
     "title": "Address",
@@ -278,7 +285,10 @@
     "priceMin": "Minimum price",
     "priceMax": "Maximum price",
     "minRating": "Rating",
-    "inStockOnly": "In stock only"
+    "inStockOnly": "In stock only",
+    "attributes": "Attributes",
+    "noAttributes": "This category declares no attributes yet.",
+    "rangeHint": "Between {min} and {max}."
   },
   "cart": {
     "title": "Your cart",
@@ -306,7 +316,8 @@
     "continueShopping": "Continue shopping",
     "pay": "Pay {amount}",
     "contactDetails": "Contact details",
-    "paymentNote": "This is a demo checkout — no card details are collected and no payment is taken. Connect a payment provider before going live."
+    "paymentNote": "This is a demo checkout — no card details are collected and no payment is taken. Connect a payment provider before going live.",
+    "stockShortage": "Not enough stock for: {items}. Reduce the quantity and try again."
   },
   "validation": {
     "required": "This field is required.",
@@ -512,5 +523,106 @@
     "openQueue": "Open the order queue",
     "bellEmpty": "No new orders",
     "bellWithCount": "{count} new orders"
+  },
+  "notFound": {
+    "title": "We could not find that page",
+    "body": "The link may be out of date, or the page may have moved.",
+    "home": "Go to the homepage"
+  },
+  "settings": {
+    "hint": "Store-wide policy. These values were previously hardcoded in the app.",
+    "identity": "Store identity",
+    "storeName": "Store name",
+    "supportEmail": "Support email",
+    "supportPhone": "Support phone",
+    "fulfilment": "Shipping & tax",
+    "fulfilmentHint": "Applied to the cart total at checkout.",
+    "shippingFlatRate": "Flat shipping rate",
+    "freeShippingThreshold": "Free shipping over",
+    "taxPercent": "Tax (%)",
+    "majorUnits": "In whole currency units, not cents.",
+    "blankDisables": "Leave blank to never offer free shipping.",
+    "never": "never",
+    "shippingPreview": "Orders pay {rate} shipping, free over {threshold}.",
+    "inventory": "Inventory & queue",
+    "lowStockThreshold": "Low stock threshold",
+    "lowStockHint": "At or below this, a product is flagged as low.",
+    "overdueAfterDays": "Overdue after (days)",
+    "overdueHint": "Queue orders older than this are marked overdue.",
+    "enforceStock": "Block checkout when stock is insufficient",
+    "enforceStockHint": "When off, orders may be placed beyond available stock.",
+    "smsSenderName": "SMS sender name",
+    "restoreDefaults": "Restore defaults",
+    "percentRange": "Must be between 0 and 100.",
+    "notNegative": "Cannot be negative.",
+    "atLeastOne": "Must be at least 1."
+  },
+  "favorites": {
+    "add": "Add to favourites",
+    "remove": "Remove from favourites",
+    "empty": "No favourites yet",
+    "emptyHint": "Tap the heart on any product to keep it here.",
+    "clear": "Clear all",
+    "unavailable": "{count} saved item(s) are no longer available."
+  },
+  "stockAlert": {
+    "title": "Out of stock",
+    "body": "Leave your number and we will text you the moment it returns.",
+    "notifyMe": "Notify me",
+    "subscribed": "We will text you when it is back.",
+    "smsBody": "Good news — {product} is back in stock.",
+    "notifiedCount": "{count} waiting customer(s) have been queued a back-in-stock message.",
+    "waiting": "waiting"
+  },
+  "coupon": {
+    "hint": "Codes a shopper enters at the cart. Product-level discounts live on the product itself.",
+    "code": "Code",
+    "codeHint": "Case-insensitive; stored upper-case.",
+    "kind": "Type",
+    "kinds": {
+      "percent": "Percentage",
+      "amount": "Fixed amount"
+    },
+    "percent": "Percent off",
+    "amount": "Amount off",
+    "value": "Discount",
+    "maxDiscount": "Maximum discount",
+    "maxDiscountHint": "Caps a percentage. Blank means uncapped.",
+    "minSubtotal": "Minimum spend",
+    "usageLimit": "Usage limit",
+    "usageLimitHint": "Blank means unlimited.",
+    "startsAt": "Starts",
+    "endsAt": "Ends",
+    "window": "Active window",
+    "always": "Always",
+    "used": "Used",
+    "live": "Live",
+    "notLive": "Not live",
+    "newCoupon": "New coupon",
+    "editCoupon": "Edit coupon",
+    "deleteCoupon": "Delete this coupon?",
+    "searchCoupons": "Search by code",
+    "valuePositive": "Must be greater than zero.",
+    "endBeforeStart": "End date cannot precede the start date.",
+    "label": "Discount code",
+    "placeholder": "Discount code",
+    "apply": "Apply",
+    "remove": "Remove",
+    "discount": "Discount",
+    "reason": {
+      "notFound": "is not a valid code.",
+      "inactive": "is no longer available.",
+      "notStarted": "is not active yet.",
+      "expired": "has expired.",
+      "usedUp": "has reached its usage limit.",
+      "belowMinimum": "needs {amount} more in the basket."
+    }
+  },
+  "date": {
+    "choose": "Choose a date",
+    "today": "Today",
+    "clear": "Clear",
+    "previousMonth": "Previous month",
+    "nextMonth": "Next month"
   }
 }

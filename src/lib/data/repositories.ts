@@ -24,6 +24,11 @@ import {
   MOCK_SMS_TEMPLATES,
   type SmsTemplate,
 } from "@/lib/data/sms-templates";
+import {
+  MOCK_STOCK_ALERTS,
+  type StockAlert,
+} from "@/lib/data/stockAlerts";
+import { MOCK_COUPONS, type Coupon } from "@/lib/data/coupons";
 import { MOCK_PRODUCTS } from "@/lib/data/mock";
 import { effectivePrice } from "@/lib/pricing";
 import { MOCK_USERS, type MockUser } from "@/lib/data/users";
@@ -174,5 +179,27 @@ export const smsTemplatesRepo = createRepository<SmsTemplate>({
   sorters: {
     name: (t) => t.name.en,
     createdAt: (t) => t.createdAt,
+  },
+});
+
+export const stockAlertsRepo = createRepository<StockAlert>({
+  data: MOCK_STOCK_ALERTS,
+  idPrefix: "sa",
+  searchable: (a) => [a.mobile, a.productId],
+  sorters: {
+    createdAt: (a) => a.createdAt,
+    mobile: (a) => a.mobile,
+  },
+});
+
+export const couponsRepo = createRepository<Coupon>({
+  data: MOCK_COUPONS,
+  idPrefix: "cpn",
+  searchable: (c) => [c.code],
+  sorters: {
+    code: (c) => c.code,
+    value: (c) => c.value,
+    usedCount: (c) => c.usedCount,
+    endsAt: (c) => c.endsAt ?? "",
   },
 });

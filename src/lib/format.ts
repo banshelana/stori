@@ -25,6 +25,16 @@ export function formatNumber(value: number, locale: Locale = "en"): string {
   return new Intl.NumberFormat(intlTag(locale)).format(value);
 }
 
+/**
+ * A year is an identifier, not a quantity — grouping it renders 1405 as
+ * "۱٬۴۰۵", which reads as a number rather than a year.
+ */
+export function formatYear(value: number, locale: Locale = "en"): string {
+  return new Intl.NumberFormat(intlTag(locale), {
+    useGrouping: false,
+  }).format(value);
+}
+
 export function formatPercent(
   value: number,
   locale: Locale = "en",

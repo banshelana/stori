@@ -3,6 +3,8 @@
 import { useState } from "react";
 import Link from "next/link";
 import { AddToCartButton } from "@/components/AddToCartButton";
+import { BackInStockForm } from "@/components/BackInStockForm";
+import { FavoriteButton } from "@/components/FavoriteButton";
 import { Price } from "@/components/Price";
 import { Rating } from "@/components/Rating";
 import { useI18n } from "@/i18n/I18nProvider";
@@ -96,8 +98,15 @@ export function ProductDetail({ slug }: { slug: string }) {
               : t("product.unavailable")}
           </p>
 
-          <div className="mt-6">
+          {product.stock <= 0 && (
+            <div className="mt-6">
+              <BackInStockForm productId={product.id} />
+            </div>
+          )}
+
+          <div className="mt-6 flex flex-wrap gap-3">
             <AddToCartButton product={product} className="px-6 py-3 text-base" />
+            <FavoriteButton productId={product.id} variant="full" />
           </div>
         </div>
       </div>

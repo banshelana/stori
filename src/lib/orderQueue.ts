@@ -98,8 +98,8 @@ export type Urgency = "fresh" | "waiting" | "overdue";
  * starting point, not a policy — a store with next-day dispatch will
  * want them lower.
  */
-export function urgencyOf(days: number): Urgency {
-  if (days >= 3) return "overdue";
+export function urgencyOf(days: number, overdueAfterDays = 3): Urgency {
+  if (days >= overdueAfterDays) return "overdue";
   if (days >= 1) return "waiting";
   return "fresh";
 }

@@ -18,10 +18,19 @@ import { useI18n } from "@/i18n/I18nProvider";
 import { localized, type LocalizedText } from "@/i18n/localized";
 import { useAuth } from "@/lib/auth/auth-context";
 import { MOCK_CATEGORIES } from "@/lib/data/mock";
+import { MOCK_BRANDS } from "@/lib/data/brands";
+import { AttributesEditor } from "@/components/admin/AttributesEditor";
 import { productsRepo } from "@/lib/data/repositories";
+import { crossedIntoStock, pendingFor } from "@/lib/stockAlerts";
+import { messagesRepo, stockAlertsRepo } from "@/lib/data/repositories";
 import { formatNumber, formatPrice } from "@/lib/format";
 import { primaryImageSrc } from "@/lib/product";
-import type { PriceAdjustment, Product, ProductImage } from "@/lib/types";
+import type {
+  AttributeValue,
+  PriceAdjustment,
+  Product,
+  ProductImage,
+} from "@/lib/types";
 import { effectivePrice, strikeThroughPrice } from "@/lib/pricing";
 import { useFormErrors } from "@/lib/useFormErrors";
 import { useResourceList } from "@/lib/useResourceList";
@@ -39,6 +48,8 @@ interface FormState {
   active: boolean;
   adjustments: PriceAdjustment[];
   categoryId: string;
+  brandId: string;
+  attributes: Record<string, AttributeValue | AttributeValue[]>;
   tags: string;
   stock: string;
   rating: string;
@@ -57,6 +68,8 @@ const BLANK: FormState = {
   active: true,
   adjustments: [],
   categoryId: MOCK_CATEGORIES[0]?.id ?? "",
+  brandId: "",
+  attributes: {},
   tags: "",
   stock: "0",
   rating: "0",
@@ -83,6 +96,7 @@ export function ProductsSection() {
   const [editing, setEditing] = useState<Product | "new" | null>(null);
   const [deleting, setDeleting] = useState<Product | null>(null);
   const [pending, setPending] = useState(false);
+  const [notified, setNotified] = useState<number | null>(null);
 
   const canWrite = can("products.write");
 
@@ -102,6 +116,8 @@ export function ProductsSection() {
         active: form.active,
         adjustments: form.adjustments,
         categoryId: form.categoryId,
+        brandId: form.brandId || null,
+        attributes: form.attributes,
         tags: form.tags
           .split(",")
           .map((tag) => tag.trim())
@@ -114,14 +130,16 @@ export function ProductsSection() {
       if (editing === "new") {
         await productsRepo.create({
           ...payload,
-          // Brand and facets are edited from the catalogue import
-          // flow, not this form; a new product starts unclassified.
-          brandId: null,
-          attributes: {},
           createdAt: new Date().toISOString().slice(0, 10),
         });
       } else if (editing) {
+        const before = editing.stock;
         await productsRepo.update(editing.id, payload);
+        // Restocking a sold-out product is the moment waiting shoppers
+        // asked to hear about.
+        if (crossedIntoStock(before, payload.stock)) {
+          await notifySubscribers(editing.id, payload.title);
+        }
       }
 
       setEditing(null);
@@ -129,6 +147,30 @@ export function ProductsSection() {
     } finally {
       setPending(false);
     }
+  }
+
+  /**
+   * Turns pending back-in-stock alerts into queued SMS and marks them
+   * sent, so a second restock does not message the same person twice.
+   */
+  async function notifySubscribers(
+    productId: string,
+    title: { en: string; fa: string }
+  ) {
+    const pending = pendingFor(stockAlertsRepo.all(), productId);
+    if (pending.length === 0) return;
+
+    const today = new Date().toISOString().slice(0, 10);
+    for (const alert of pending) {
+      await messagesRepo.create({
+        recipient: alert.mobile,
+        body: t("stockAlert.smsBody", { product: title[locale] || title.en }),
+        status: "queued",
+        sentAt: today,
+      });
+      await stockAlertsRepo.update(alert.id, { notifiedAt: today });
+    }
+    setNotified(pending.length);
   }
 
   async function toggleActive(product: Product, active: boolean) {
@@ -257,6 +299,15 @@ export function ProductsSection() {
         }
       />
 
+      {notified !== null && (
+        <p
+          role="status"
+          className="animate-fade-in mb-4 rounded-xl bg-emerald-50 p-3 text-sm font-medium text-emerald-700"
+        >
+          {t("stockAlert.notifiedCount", { count: formatNumber(notified, locale) })}
+        </p>
+      )}
+
       <FilterToolbar
         q={list.q}
         onQ={list.setQ}
@@ -370,7 +421,7 @@ function ProductForm({
   onSave: (form: FormState) => void;
   onCancel: () => void;
 }) {
-  const { t } = useI18n();
+  const { t, locale } = useI18n();
   const isNew = initial === "new";
 
   const [form, setForm] = useState<FormState>(
@@ -389,6 +440,8 @@ function ProductForm({
           active: initial.active,
           adjustments: (initial.adjustments ?? []).map((a) => ({ ...a })),
           categoryId: initial.categoryId,
+          brandId: initial.brandId ?? "",
+          attributes: { ...initial.attributes },
           tags: initial.tags.join(", "),
           stock: String(initial.stock),
           rating: String(initial.rating),
@@ -530,11 +583,22 @@ function ProductForm({
           <SelectField
             label={t("product.category")}
             value={form.categoryId}
-            onChange={(v) => set("categoryId", v)}
+            onChange={(v) => {
+              // Facets belong to a category, so the previous category's
+              // values are meaningless under the new one.
+              setForm((prev) => ({ ...prev, categoryId: v, attributes: {} }));
+            }}
             options={MOCK_CATEGORIES.map((c) => ({
               value: c.id,
-              label: c.name.en,
+              label: localized(c.name, locale),
             }))}
+          />
+          <SelectField
+            label={t("product.brand")}
+            value={form.brandId}
+            placeholder={t("common.none")}
+            onChange={(v) => set("brandId", v)}
+            options={MOCK_BRANDS.map((b) => ({ value: b.id, label: b.name }))}
           />
           <SelectField
             label={t("product.currency")}
@@ -583,6 +647,12 @@ function ProductForm({
           hint={t("product.tagsHint")}
           value={form.tags}
           onChange={(v) => set("tags", v)}
+        />
+
+        <AttributesEditor
+          category={MOCK_CATEGORIES.find((c) => c.id === form.categoryId)}
+          value={form.attributes}
+          onChange={(next) => set("attributes", next)}
         />
 
         <div className="space-y-2">
