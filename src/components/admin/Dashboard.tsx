@@ -83,7 +83,11 @@ export function Dashboard() {
       </div>
 
       <div className="mt-6 grid gap-6 xl:grid-cols-[1.6fr_1fr]">
-        <Card>
+        {/* min-w-0 is load-bearing: a grid child defaults to min-width:auto,
+            so without it this card refuses to shrink below the 520px table
+            inside and pushes the whole page wider than the screen. The
+            overflow-x-auto below only works once the card can shrink. */}
+        <Card className="min-w-0">
           <h2 className="mb-4 font-bold text-slate-900">
             {t("admin.recentOrders")}
           </h2>
