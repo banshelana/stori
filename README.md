@@ -251,6 +251,46 @@ Up to 6 images per product. Change `max` on `GalleryUpload` to adjust.
 
 ---
 
+## SMS panel
+
+`/admin/messages`, behind `messages.view` / `messages.send`, with two tabs.
+
+### Sent messages
+
+History of everything sent, searchable and filterable by status. A broadcast writes **one row per recipient**, not one row per send, so the history reflects what was actually delivered.
+
+### Composing
+
+Recipients come from either route, and the two converge on one list keyed by normalised mobile:
+
+- **Choose customers** — searchable, checkbox list of active customers, with select-all on the current filter.
+- **Enter numbers** — paste a blob; invalid entries are reported rather than silently dropped.
+
+A number picked as a customer and the same number typed by hand cannot both end up in the send; the customer entry wins, because that is the one whose placeholders can resolve.
+
+### Templates
+
+Managed in the second tab, full CRUD, bodies stored per-locale like every other piece of content. **Save this as a template** in the composer seeds a new template with the current body.
+
+Bodies may contain `{firstName}`, `{lastName}`, `{fullName}` and `{mobile}`, resolved per recipient at send time. An unresolvable token is **left visible rather than blanked**, and the composer warns before sending which recipients cannot fill which fields — typically bare numbers under a template that greets by name.
+
+### Segment counting
+
+This is the part worth getting right, because it is what a message costs.
+
+| Encoding | Single | Concatenated |
+| --- | --- | --- |
+| GSM-7 | 160 | 153 |
+| UCS-2 | 70 | 67 |
+
+A single character outside the GSM 03.38 alphabet forces the **whole** message to UCS-2. In practice that means one Persian letter takes a 160-character message from one segment to three — and so does a typographic em dash in an otherwise-Latin message. The composer shows the live encoding, character count against the active limit, segments, and the total across all recipients.
+
+`src/lib/sms.ts` holds this logic free of React so it can be tested directly; `src/lib/sms.test.ts` covers encoding detection, the extended-GSM characters that cost two slots, the concatenation boundaries, placeholder resolution, and number parsing.
+
+One parsing subtlety worth noting: a space is ambiguous. It separates two numbers in `0912… 0913…` but groups digits within one in `0912 111 2233`. Each comma/newline chunk is therefore tried whole first, and only split on whitespace if it is not a valid number by itself.
+
+---
+
 ## Locations (admin)
 
 `/admin/locations` manages the reference geography the address form depends on, as three tabs behind the `geo.view` / `geo.manage` permissions.
@@ -300,6 +340,16 @@ Point them at your own tile server to make the app fully offline again. If you s
 - Scroll-wheel zoom is off until the map is clicked, so a wheel over an embedded map still scrolls the page.
 - Coordinates round to six decimals (~11 cm), which is far more than an address needs.
 - The pin is optional — an address saves fine without one.
+
+### Viewing a customer's location (admin)
+
+The Customers table has a **View location on map** row action that opens a modal with the customer's pinned addresses.
+
+- The action appears **only when the customer has at least one address carrying valid coordinates** — no dead button on rows with nothing to show.
+- It needs only `customers.view`, not `customers.write`: a support agent can locate a customer without being able to change them.
+- With several pinned addresses the map fits to all of them; clicking an entry in the list below pans to that one and opens its tooltip.
+
+`MapPicker` (editable) and `MapView` (read-only, multi-marker) share their setup through `useLeafletMap`, which owns the dynamic import, the tile layer, bounds and the `invalidateSize` dance. They stay separate components because the behaviour genuinely differs — nothing in the viewer is editable, and it fits to an extent rather than to a single point.
 
 ### Implementation notes
 

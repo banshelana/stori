@@ -20,6 +20,10 @@ import {
   type Country,
   type Province,
 } from "@/lib/data/geo";
+import {
+  MOCK_SMS_TEMPLATES,
+  type SmsTemplate,
+} from "@/lib/data/sms-templates";
 import { MOCK_PRODUCTS } from "@/lib/data/mock";
 import { effectivePrice } from "@/lib/pricing";
 import { MOCK_USERS, type MockUser } from "@/lib/data/users";
@@ -157,5 +161,18 @@ export const citiesRepo = createRepository<City>({
   sorters: {
     name: (c) => c.name.en,
     provinceId: (c) => c.provinceId,
+  },
+});
+
+export const smsTemplatesRepo = createRepository<SmsTemplate>({
+  data: MOCK_SMS_TEMPLATES,
+  idPrefix: "tpl",
+  searchable: (t) => [
+    ...Object.values(t.name),
+    ...Object.values(t.body),
+  ],
+  sorters: {
+    name: (t) => t.name.en,
+    createdAt: (t) => t.createdAt,
   },
 });

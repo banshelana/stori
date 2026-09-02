@@ -155,7 +155,9 @@
     "initialPassword": "رمز عبور اولیه",
     "initialPasswordHint": "مشتری می‌تواند پس از ورود آن را تغییر دهد.",
     "locations": "مکان‌ها",
-    "locationsHint": "کشورها، استان‌ها و شهرهایی که فرم آدرس از آن‌ها استفاده می‌کند."
+    "locationsHint": "کشورها، استان‌ها و شهرهایی که فرم آدرس از آن‌ها استفاده می‌کند.",
+    "viewLocation": "مشاهده موقعیت روی نقشه",
+    "customerLocation": "موقعیت مشتری"
   },
   "account": {
     "title": "حساب کاربری",
@@ -362,7 +364,41 @@
       "queued": "در صف",
       "failed": "ناموفق"
     },
-    "send": "ارسال"
+    "send": "ارسال",
+    "panelHint": "ارسال پیام به مشتریان و مدیریت قالب‌های آماده.",
+    "history": "پیام‌های ارسالی",
+    "templates": "قالب‌ها",
+    "recipients": "گیرندگان",
+    "recipientCount": "{count} انتخاب شده",
+    "fromCustomers": "انتخاب از مشتریان",
+    "enterNumbers": "ورود شماره‌ها",
+    "matching": "{count} مورد",
+    "selectAll": "انتخاب همه",
+    "deselectAll": "لغو انتخاب همه",
+    "addNumbers": "افزودن شماره‌ها",
+    "numbersHint": "با کاما، فاصله یا خط جدید جدا کنید.",
+    "invalidNumbers": "شماره موبایل معتبر نیست: {list}",
+    "clearRecipients": "پاک کردن همه",
+    "template": "قالب",
+    "noTemplate": "بدون قالب — متن جدید بنویسید",
+    "insert": "درج",
+    "preview": "پیش‌نمایش",
+    "charCount": "{length} از {limit} کاراکتر",
+    "segmentCount": "{segments} بخش",
+    "totalSegments": "{total} در مجموع",
+    "sendToCount": "ارسال به {count} نفر",
+    "noRecipients": "حداقل یک گیرنده انتخاب کنید.",
+    "noBody": "ابتدا متن پیام را بنویسید.",
+    "queued": "{count} پیام در صف ارسال قرار گرفت.",
+    "segments": "بخش‌ها",
+    "unresolvedTitle": "برخی جایگزین‌ها قابل تکمیل نیستند",
+    "unresolvedBody": "{count} گیرنده مقداری برای {fields} ندارند و متن جایگزین را همان‌طور که هست دریافت می‌کنند.",
+    "saveAsTemplate": "ذخیره به‌عنوان قالب",
+    "newTemplate": "قالب جدید",
+    "editTemplate": "ویرایش قالب",
+    "deleteTemplate": "این قالب حذف شود؟",
+    "searchTemplates": "جستجوی قالب‌ها",
+    "placeholderHint": "از {firstName}، {lastName}، {fullName} یا {mobile} استفاده کنید — هنگام ارسال برای هر گیرنده جایگزین می‌شوند."
   },
   "upload": {
     "images": "تصاویر",
@@ -442,6 +478,7 @@
     "noLocationPicked": "روی نقشه کلیک کنید تا نشانگر قرار گیرد، یا آن را جابه‌جا کنید.",
     "useMyLocation": "موقعیت فعلی من",
     "geolocationUnavailable": "مرورگر شما از تشخیص موقعیت پشتیبانی نمی‌کند.",
-    "geolocationDenied": "موقعیت شما دریافت نشد. روی نقشه کلیک کنید."
+    "geolocationDenied": "موقعیت شما دریافت نشد. روی نقشه کلیک کنید.",
+    "noLocationSaved": "موقعیتی برای این مشتری ثبت نشده است."
   }
 }

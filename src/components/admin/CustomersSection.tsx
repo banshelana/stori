@@ -3,6 +3,10 @@
 import { useState } from "react";
 import { SelectField, TextField } from "@/components/form/Field";
 import { Avatar } from "@/components/Avatar";
+import {
+  CustomerLocationModal,
+  hasLocation,
+} from "@/components/admin/CustomerLocationModal";
 import { DataTable, Pagination, type Column } from "@/components/panel/DataTable";
 import { FilterToolbar, NewButton } from "@/components/panel/FilterToolbar";
 import { ConfirmDialog, Modal } from "@/components/panel/Modal";
@@ -50,6 +54,9 @@ export function CustomersSection() {
 
   const [editing, setEditing] = useState<MockUser | "new" | null>(null);
   const [deleting, setDeleting] = useState<MockUser | null>(null);
+  const [viewingLocation, setViewingLocation] = useState<MockUser | null>(
+    null
+  );
   const [pending, setPending] = useState(false);
 
   const canWrite = can("customers.write");
@@ -233,35 +240,44 @@ export function CustomersSection() {
         sortKey={list.sortKey}
         sortDir={list.sortDir}
         onSort={list.toggleSort}
-        actions={
-          canWrite
+        actions={[
+          // Viewing a location needs only customers.view, which this page
+          // already guards — a support agent can locate a customer without
+          // being able to change them.
+          {
+            icon: "map",
+            label: t("admin.viewLocation"),
+            visible: (u) => hasLocation(u),
+            onClick: (u) => setViewingLocation(u),
+          },
+          ...(canWrite
             ? [
                 {
                   icon: "power",
                   label: t("common.disable"),
-                  visible: (u) => u.active,
-                  onClick: (u) => toggleActive(u, false),
+                  visible: (u: MockUser) => u.active,
+                  onClick: (u: MockUser) => toggleActive(u, false),
                 },
                 {
                   icon: "power",
                   label: t("common.enable"),
-                  visible: (u) => !u.active,
-                  onClick: (u) => toggleActive(u, true),
+                  visible: (u: MockUser) => !u.active,
+                  onClick: (u: MockUser) => toggleActive(u, true),
                 },
                 {
                   icon: "pencil",
                   label: t("common.edit"),
-                  onClick: (u) => setEditing(u),
+                  onClick: (u: MockUser) => setEditing(u),
                 },
                 {
                   icon: "trash",
                   label: t("common.delete"),
-                  tone: "danger",
-                  onClick: (u) => setDeleting(u),
+                  tone: "danger" as const,
+                  onClick: (u: MockUser) => setDeleting(u),
                 },
               ]
-            : undefined
-        }
+            : []),
+        ]}
       />
 
       <Pagination
@@ -278,6 +294,13 @@ export function CustomersSection() {
           pending={pending}
           onSave={handleSave}
           onCancel={() => setEditing(null)}
+        />
+      )}
+
+      {viewingLocation && (
+        <CustomerLocationModal
+          customer={viewingLocation}
+          onClose={() => setViewingLocation(null)}
         />
       )}
 

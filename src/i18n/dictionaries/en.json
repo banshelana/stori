@@ -155,7 +155,9 @@
     "initialPassword": "Initial password",
     "initialPasswordHint": "The customer can change this after signing in.",
     "locations": "Locations",
-    "locationsHint": "Countries, provinces and cities used by the address form."
+    "locationsHint": "Countries, provinces and cities used by the address form.",
+    "viewLocation": "View location on map",
+    "customerLocation": "Customer location"
   },
   "account": {
     "title": "My account",
@@ -362,7 +364,41 @@
       "queued": "Queued",
       "failed": "Failed"
     },
-    "send": "Send"
+    "send": "Send",
+    "panelHint": "Send messages to customers and manage reusable templates.",
+    "history": "Sent messages",
+    "templates": "Templates",
+    "recipients": "Recipients",
+    "recipientCount": "{count} selected",
+    "fromCustomers": "Choose customers",
+    "enterNumbers": "Enter numbers",
+    "matching": "{count} matching",
+    "selectAll": "Select all",
+    "deselectAll": "Deselect all",
+    "addNumbers": "Add numbers",
+    "numbersHint": "Separate with commas, spaces or new lines.",
+    "invalidNumbers": "Not valid mobile numbers: {list}",
+    "clearRecipients": "Clear all",
+    "template": "Template",
+    "noTemplate": "No template — write from scratch",
+    "insert": "Insert",
+    "preview": "Preview",
+    "charCount": "{length} / {limit} characters",
+    "segmentCount": "{segments} segment(s)",
+    "totalSegments": "{total} in total",
+    "sendToCount": "Send to {count}",
+    "noRecipients": "Choose at least one recipient.",
+    "noBody": "Write a message first.",
+    "queued": "{count} message(s) queued for sending.",
+    "segments": "Segments",
+    "unresolvedTitle": "Some placeholders cannot be filled",
+    "unresolvedBody": "{count} recipient(s) have no value for: {fields}. They will receive the placeholder as written.",
+    "saveAsTemplate": "Save this as a template",
+    "newTemplate": "New template",
+    "editTemplate": "Edit template",
+    "deleteTemplate": "Delete this template?",
+    "searchTemplates": "Search templates",
+    "placeholderHint": "Use {firstName}, {lastName}, {fullName} or {mobile} — they are replaced per recipient when sending."
   },
   "upload": {
     "images": "Images",
@@ -442,6 +478,7 @@
     "noLocationPicked": "Click the map to drop a pin, or drag it to adjust.",
     "useMyLocation": "Use my location",
     "geolocationUnavailable": "Your browser does not support location lookup.",
-    "geolocationDenied": "Could not get your location. Click the map instead."
+    "geolocationDenied": "Could not get your location. Click the map instead.",
+    "noLocationSaved": "No location saved for this customer."
   }
 }
