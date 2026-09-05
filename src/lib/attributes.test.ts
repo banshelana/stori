@@ -28,7 +28,6 @@ function product(
     adjustments: [],
     categoryId: "c",
     tags: [],
-    rating: 4,
     stock: 1,
     createdAt: "2026-01-01",
   };

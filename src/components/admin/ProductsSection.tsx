@@ -25,6 +25,8 @@ import { crossedIntoStock, pendingFor } from "@/lib/stockAlerts";
 import { messagesRepo, stockAlertsRepo } from "@/lib/data/repositories";
 import { formatNumber, formatPrice } from "@/lib/format";
 import { primaryImageSrc } from "@/lib/product";
+import { MOCK_REVIEWS } from "@/lib/data/reviews-data";
+import { ratingFor } from "@/lib/reviews";
 import type {
   AttributeValue,
   PriceAdjustment,
@@ -52,7 +54,6 @@ interface FormState {
   attributes: Record<string, AttributeValue | AttributeValue[]>;
   tags: string;
   stock: string;
-  rating: string;
   featured: boolean;
 }
 
@@ -72,7 +73,6 @@ const BLANK: FormState = {
   attributes: {},
   tags: "",
   stock: "0",
-  rating: "0",
   featured: false,
 };
 
@@ -123,7 +123,6 @@ export function ProductsSection() {
           .map((tag) => tag.trim())
           .filter(Boolean),
         stock: Number(toAsciiDigits(form.stock)) || 0,
-        rating: Number(toAsciiDigits(form.rating)) || 0,
         featured: form.featured,
       };
 
@@ -260,11 +259,20 @@ export function ProductsSection() {
       sortable: true,
       align: "end",
       hideOnMobile: true,
-      render: (p) => (
-        <span className="text-slate-600">
-          {formatNumber(Number(p.rating.toFixed(1)), locale)}
-        </span>
-      ),
+      render: (p) => {
+        const { average, count } = ratingFor(p.id, MOCK_REVIEWS);
+        if (average === null) {
+          return <span className="text-slate-300">—</span>;
+        }
+        return (
+          <span className="text-slate-600">
+            {formatNumber(average, locale)}
+            <span className="ms-1 text-xs text-slate-400">
+              ({formatNumber(count, locale)})
+            </span>
+          </span>
+        );
+      },
     },
     {
       key: "featured",
@@ -447,7 +455,6 @@ function ProductForm({
           attributes: { ...initial.attributes },
           tags: initial.tags.join(", "),
           stock: String(initial.stock),
-          rating: String(initial.rating),
           featured: Boolean(initial.featured),
         }
   );
@@ -617,12 +624,6 @@ function ProductForm({
             inputMode="numeric"
             value={form.stock}
             onChange={(v) => set("stock", v)}
-          />
-          <TextField
-            label={t("product.ratingLabel")}
-            inputMode="numeric"
-            value={form.rating}
-            onChange={(v) => set("rating", v)}
           />
         </div>
 

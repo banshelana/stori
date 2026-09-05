@@ -32,6 +32,7 @@ import {
 } from "@/lib/data/stockAlerts";
 import { MOCK_COUPONS, type Coupon } from "@/lib/data/coupons";
 import { MOCK_PRODUCTS } from "@/lib/data/mock";
+import { ratingFor } from "@/lib/reviews";
 import { effectivePrice } from "@/lib/pricing";
 import { MOCK_USERS, type MockUser } from "@/lib/data/users";
 import type { Product } from "@/lib/types";
@@ -69,7 +70,7 @@ export const productsRepo = createRepository<Product>({
     title: (p) => localized(p.title, "en"),
     price: (p) => effectivePrice(p),
     stock: (p) => p.stock,
-    rating: (p) => p.rating,
+    rating: (p) => ratingFor(p.id, MOCK_REVIEWS).average ?? -1,
     createdAt: (p) => p.createdAt,
   },
 });

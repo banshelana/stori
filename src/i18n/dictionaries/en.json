@@ -356,10 +356,26 @@
     "seeAllResults": "See all results"
   },
   "review": {
-    "body": "Review",
+    "body": "Your review",
     "approved": "Approved",
     "pending": "Awaiting approval",
-    "rating": "Rating"
+    "rating": "Rating",
+    "heading": "Customer reviews",
+    "none": "No reviews yet",
+    "noneYet": "No reviews yet — be the first.",
+    "count": "{count} review(s)",
+    "verified": "Verified purchase",
+    "writeHeading": "Write a review",
+    "submit": "Submit review",
+    "submitted": "Thanks — your review is with our team and will appear once approved.",
+    "pickStars": "Choose a star rating.",
+    "tooShort": "Please write at least a few words.",
+    "starLabel": "{star} stars",
+    "moderationNote": "Reviews are checked before they appear.",
+    "signInToReview": "Sign in to review a product you have bought.",
+    "purchaseToReview": "Only customers who have received this product can review it.",
+    "alreadyReviewed": "You have already reviewed this product.",
+    "unverified": "Not a verified purchase"
   },
   "contact": {
     "subject": "Subject",

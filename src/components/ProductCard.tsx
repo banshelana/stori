@@ -9,6 +9,9 @@ import { Rating } from "@/components/Rating";
 import { useI18n } from "@/i18n/I18nProvider";
 import { localized } from "@/i18n/localized";
 import { useLocaleHref } from "@/i18n/navigation";
+import { ProductRating } from "@/components/ProductRating";
+import { MOCK_REVIEWS } from "@/lib/data/reviews-data";
+import { ratingFor } from "@/lib/reviews";
 import { formatNumber } from "@/lib/format";
 import { effectivePrice, strikeThroughPrice } from "@/lib/pricing";
 import { primaryImageSrc } from "@/lib/product";
@@ -94,7 +97,7 @@ export function ProductCard({ product }: { product: Product }) {
       </div>
 
       <div className="flex flex-1 flex-col gap-2 p-4">
-        <Rating value={product.rating} />
+        <ProductRating summary={ratingFor(product.id, MOCK_REVIEWS)} />
 
         <h3 className="text-sm font-semibold leading-snug text-slate-900 sm:text-base">
           <Link

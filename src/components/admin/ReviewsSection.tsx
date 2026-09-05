@@ -17,6 +17,8 @@ import {
   reviewsRepo,
 } from "@/lib/data/repositories";
 import { formatDate } from "@/lib/format";
+import { hasPurchased } from "@/lib/reviews";
+import { ordersRepo } from "@/lib/data/repositories";
 import { useResourceList } from "@/lib/useResourceList";
 import { validateRequired } from "@/lib/validation";
 
@@ -69,7 +71,20 @@ export function ReviewsSection() {
       header: t("common.customer"),
       hideOnMobile: true,
       render: (r) => (
-        <span className="text-slate-600">{authorName(r.userId)}</span>
+        <span className="flex items-center gap-1.5">
+          <span className="text-slate-600">{authorName(r.userId)}</span>
+          {/* Whether this reviewer actually received the product is the
+              single most useful thing a moderator can know. */}
+          {hasPurchased(r.userId, r.productId, ordersRepo.all()) ? (
+            <span className="rounded-full bg-emerald-50 px-1.5 py-0.5 text-[10px] font-semibold text-emerald-700">
+              {t("review.verified")}
+            </span>
+          ) : (
+            <span className="rounded-full bg-amber-50 px-1.5 py-0.5 text-[10px] font-semibold text-amber-700">
+              {t("review.unverified")}
+            </span>
+          )}
+        </span>
       ),
     },
     {

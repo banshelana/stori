@@ -121,7 +121,12 @@ export interface Product {
   adjustments: PriceAdjustment[];
   categoryId: string;
   tags: string[];
-  rating: number; // 0..5
+  /**
+   * No `rating` field: a product's stars are derived from its
+   * approved reviews (see src/lib/reviews.ts). A stored number
+   * drifts away from what customers actually said, and moderating a
+   * review would then change nothing on the page.
+   */
   stock: number;
   featured?: boolean;
   createdAt: string; // ISO date

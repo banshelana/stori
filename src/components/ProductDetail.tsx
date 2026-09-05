@@ -10,6 +10,10 @@ import { Rating } from "@/components/Rating";
 import { useI18n } from "@/i18n/I18nProvider";
 import { localized } from "@/i18n/localized";
 import { useLocaleHref } from "@/i18n/navigation";
+import { ProductRating } from "@/components/ProductRating";
+import { ProductReviews } from "@/components/ProductReviews";
+import { MOCK_REVIEWS } from "@/lib/data/reviews-data";
+import { ratingFor } from "@/lib/reviews";
 import { formatNumber } from "@/lib/format";
 import { useProductBySlug } from "@/lib/hooks";
 import { orderedImages, PLACEHOLDER_IMAGE } from "@/lib/product";
@@ -68,7 +72,10 @@ export function ProductDetail({ slug }: { slug: string }) {
         />
 
         <div className="flex flex-col">
-          <Rating value={product.rating} />
+          <ProductRating
+            summary={ratingFor(product.id, MOCK_REVIEWS)}
+            size="md"
+          />
           <h1 className="mt-2 text-3xl font-extrabold tracking-tight text-slate-900">
             {localized(product.title, locale)}
           </h1>
@@ -110,6 +117,8 @@ export function ProductDetail({ slug }: { slug: string }) {
           </div>
         </div>
       </div>
+
+      <ProductReviews product={product} />
     </main>
   );
 }

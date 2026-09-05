@@ -43,7 +43,6 @@ function product(price: number, adjustments: PriceAdjustment[] = []): Product {
     adjustments,
     categoryId: "c",
     tags: [],
-    rating: 0,
     stock: 1,
     createdAt: TODAY,
   };

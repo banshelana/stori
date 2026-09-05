@@ -1,4 +1,10 @@
 import type { LocalizedText } from "@/i18n/localized";
+
+// Reviews live in their own module so mock.ts can derive product
+// ratings from them without importing this file, which itself
+// imports mock.ts.
+export type { Review } from "@/lib/data/reviews-data";
+export { MOCK_REVIEWS } from "@/lib/data/reviews-data";
 import { MOCK_PRODUCTS } from "@/lib/data/mock";
 import { MOCK_USERS } from "@/lib/data/users";
 
@@ -57,15 +63,6 @@ export interface Payment {
   paidAt: string;
 }
 
-export interface Review {
-  id: string;
-  productId: string;
-  userId: string;
-  rating: number;
-  body: string;
-  approved: boolean;
-  createdAt: string;
-}
 
 export const TICKET_STATUSES = ["open", "pending", "resolved"] as const;
 export type TicketStatus = (typeof TICKET_STATUSES)[number];
@@ -180,35 +177,6 @@ export const MOCK_PAYMENTS: Payment[] = MOCK_ORDERS.filter(
   paidAt: order.createdAt,
 }));
 
-export const MOCK_REVIEWS: Review[] = [
-  {
-    id: "r-001",
-    productId: "p-001",
-    userId: "u-004",
-    rating: 5,
-    body: "Excellent noise cancelling, battery lasts all week.",
-    approved: true,
-    createdAt: "2026-06-10",
-  },
-  {
-    id: "r-002",
-    productId: "p-003",
-    userId: "u-005",
-    rating: 4,
-    body: "Great screen, but the strap could be softer.",
-    approved: true,
-    createdAt: "2026-05-02",
-  },
-  {
-    id: "r-003",
-    productId: "p-002",
-    userId: "u-004",
-    rating: 3,
-    body: "Fine for the price, transparency mode is hit and miss.",
-    approved: false,
-    createdAt: "2026-08-14",
-  },
-];
 
 export const MOCK_CONTACTS: Contact[] = [
   {

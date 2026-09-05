@@ -13,6 +13,8 @@ import { translate } from "@/i18n/translate";
 import { getCategories, listProducts } from "@/lib/data";
 import { DEFAULT_SOURCE } from "@/lib/data/config";
 import { formatNumber } from "@/lib/format";
+import { MOCK_REVIEWS } from "@/lib/data/reviews-data";
+import { ratingFor } from "@/lib/reviews";
 
 /** Category slug -> icon, so the cards read at a glance. */
 const CATEGORY_ICON: Record<string, string> = {
@@ -35,9 +37,13 @@ export default async function HomePage({
   const categories = await getCategories(DEFAULT_SOURCE);
   const products = await listProducts(DEFAULT_SOURCE, {}, locale);
 
+  // Averaged across products that actually have a rating.
+  const rated = products
+    .map((p) => ratingFor(p.id, MOCK_REVIEWS).average)
+    .filter((value): value is number => value !== null);
   const averageRating =
-    products.length > 0
-      ? products.reduce((sum, p) => sum + p.rating, 0) / products.length
+    rated.length > 0
+      ? rated.reduce((sum, value) => sum + value, 0) / rated.length
       : 0;
 
   const stats = [

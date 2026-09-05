@@ -1,6 +1,8 @@
 import { DEFAULT_LOCALE, type Locale } from "@/i18n/config";
 import { allTranslations } from "@/i18n/localized";
 import { matchesAttributes } from "@/lib/attributes";
+import { MOCK_REVIEWS } from "@/lib/data/reviews-data";
+import { ratingFor, ratingSortValue } from "@/lib/reviews";
 import { effectivePrice } from "@/lib/pricing";
 import type { Category, Product, SearchFilters } from "@/lib/types";
 
@@ -186,7 +188,6 @@ export const MOCK_PRODUCTS: Product[] = [
     ],
     categoryId: "cat-1",
     tags: ["audio", "bluetooth", "noise-cancelling"],
-    rating: 4.7,
     stock: 24,
     featured: true,
     createdAt: "2025-11-02",
@@ -210,7 +211,6 @@ export const MOCK_PRODUCTS: Product[] = [
     adjustments: [],
     categoryId: "cat-1",
     tags: ["audio", "bluetooth", "wireless"],
-    rating: 4.4,
     stock: 61,
     featured: false,
     createdAt: "2026-01-15",
@@ -234,7 +234,6 @@ export const MOCK_PRODUCTS: Product[] = [
     adjustments: [],
     categoryId: "cat-2",
     tags: ["wearable", "fitness", "gps"],
-    rating: 4.5,
     stock: 18,
     featured: true,
     createdAt: "2025-09-20",
@@ -258,7 +257,6 @@ export const MOCK_PRODUCTS: Product[] = [
     adjustments: [],
     categoryId: "cat-2",
     tags: ["wearable", "fitness"],
-    rating: 4.2,
     stock: 90,
     featured: false,
     createdAt: "2026-03-04",
@@ -293,7 +291,6 @@ export const MOCK_PRODUCTS: Product[] = [
     ],
     categoryId: "cat-3",
     tags: ["desk", "keyboard", "mechanical"],
-    rating: 4.9,
     stock: 32,
     featured: true,
     createdAt: "2025-08-11",
@@ -317,7 +314,6 @@ export const MOCK_PRODUCTS: Product[] = [
     adjustments: [],
     categoryId: "cat-1",
     tags: ["desk", "audio"],
-    rating: 4.3,
     stock: 0,
     featured: false,
     createdAt: "2026-05-30",
@@ -341,7 +337,6 @@ export const MOCK_PRODUCTS: Product[] = [
     adjustments: [],
     categoryId: "cat-4",
     tags: ["home", "lighting"],
-    rating: 4.6,
     stock: 40,
     featured: true,
     createdAt: "2025-07-01",
@@ -365,7 +360,6 @@ export const MOCK_PRODUCTS: Product[] = [
     adjustments: [],
     categoryId: "cat-4",
     tags: ["home", "kitchen"],
-    rating: 4.8,
     stock: 120,
     featured: false,
     createdAt: "2026-02-14",
@@ -427,7 +421,12 @@ export async function mockList(
 
   const minRating = filters.minRating;
   if (typeof minRating === "number" && minRating > 0) {
-    items = items.filter((p) => p.rating >= minRating);
+    // An unrated product has no rating to meet, so it is excluded
+    // rather than treated as zero.
+    items = items.filter((p) => {
+      const { average } = ratingFor(p.id, MOCK_REVIEWS);
+      return average !== null && average >= minRating;
+    });
   }
 
   if (filters.inStock) {
@@ -449,7 +448,11 @@ export async function mockList(
       );
       break;
     case "rating-desc":
-      items.sort((a, b) => b.rating - a.rating);
+      items.sort(
+        (a, b) =>
+          ratingSortValue(ratingFor(b.id, MOCK_REVIEWS)) -
+          ratingSortValue(ratingFor(a.id, MOCK_REVIEWS))
+      );
       break;
     case "newest":
       items.sort((a, b) => b.createdAt.localeCompare(a.createdAt));
