@@ -116,4 +116,16 @@ export const MOCK_REVIEWS: Review[] = [
     approved: true,
     createdAt: "2026-08-21",
   },
+  {
+    id: "r-012",
+    productId: "p-007",
+    userId: "u-005",
+    rating: 4,
+    // Deliberately unapproved: this is the state the customer cannot
+    // otherwise see, since a pending review is absent from the product
+    // page. Their orders page is the only place it surfaces.
+    body: "Lovely warm light, though the touch dimmer takes a moment to respond.",
+    approved: false,
+    createdAt: "2026-08-28",
+  },
 ];

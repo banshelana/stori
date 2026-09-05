@@ -9,6 +9,8 @@ import {
   PageHeader,
   TableSkeleton,
 } from "@/components/panel/ui";
+import { OrderReviewDialog } from "@/components/account/OrderReviewDialog";
+import { Icon } from "@/components/panel/Icon";
 import { useI18n } from "@/i18n/I18nProvider";
 import { localized } from "@/i18n/localized";
 import { useAuth } from "@/lib/auth/auth-context";
@@ -19,6 +21,9 @@ import {
   type OrderStatus,
 } from "@/lib/data/commerce";
 import { formatDate, formatNumber, formatPrice } from "@/lib/format";
+import { MOCK_REVIEWS } from "@/lib/data/reviews-data";
+import { productsRepo } from "@/lib/data/repositories";
+import { existingReview } from "@/lib/reviews";
 
 type Tab = OrderStatus | "all";
 const TABS: Tab[] = ["all", ...ORDER_STATUSES];
@@ -29,6 +34,10 @@ export function MyOrders() {
   const [orders, setOrders] = useState<Order[] | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [tab, setTab] = useState<Tab>("all");
+  const [reviewing, setReviewing] = useState<{
+    productId: string;
+    title: string;
+  } | null>(null);
 
   useEffect(() => {
     if (!user) return;
@@ -125,16 +134,61 @@ export function MyOrders() {
               </div>
 
               <ul className="mt-4 space-y-1.5 border-t border-slate-100 pt-4 text-sm">
-                {order.lines.map((l) => (
-                  <li key={l.productId} className="flex justify-between gap-3">
-                    <span className="min-w-0 truncate text-slate-600">
-                      {localized(l.title, locale)} &times; {formatNumber(l.quantity, locale)}
-                    </span>
-                    <span className="shrink-0 font-medium text-slate-900">
-                      {formatPrice(l.quantity * l.unitPrice, order.currency, locale)}
-                    </span>
-                  </li>
-                ))}
+                {order.lines.map((l) => {
+                  // Only a completed order can be reviewed — the same rule
+                  // the product page enforces, surfaced where the customer
+                  // actually is after receiving something.
+                  const reviewable = order.status === "done";
+                  const mine = user
+                    ? existingReview(user.id, l.productId, MOCK_REVIEWS)
+                    : undefined;
+
+                  return (
+                    <li
+                      key={l.productId}
+                      className="flex flex-wrap items-center justify-between gap-2"
+                    >
+                      <span className="min-w-0 flex-1 truncate text-slate-600">
+                        {localized(l.title, locale)} &times;{" "}
+                        {formatNumber(l.quantity, locale)}
+                      </span>
+
+                      {reviewable && (
+                        <button
+                          type="button"
+                          onClick={() =>
+                            setReviewing({
+                              productId: l.productId,
+                              title: localized(l.title, locale),
+                            })
+                          }
+                          className={`inline-flex shrink-0 items-center gap-1.5 rounded-full px-2.5 py-1 text-xs font-semibold transition-colors ${
+                            mine
+                              ? mine.approved
+                                ? "bg-emerald-50 text-emerald-700 hover:bg-emerald-100"
+                                : "bg-amber-50 text-amber-700 hover:bg-amber-100"
+                              : "bg-slate-100 text-slate-600 hover:bg-slate-200"
+                          }`}
+                        >
+                          <Icon name="star" className="h-3 w-3" />
+                          {mine
+                            ? mine.approved
+                              ? t("review.yourReview")
+                              : t("review.pending")
+                            : t("review.writeShort")}
+                        </button>
+                      )}
+
+                      <span className="shrink-0 font-medium text-slate-900">
+                        {formatPrice(
+                          l.quantity * l.unitPrice,
+                          order.currency,
+                          locale
+                        )}
+                      </span>
+                    </li>
+                  );
+                })}
               </ul>
 
               <div className="mt-4 flex justify-between border-t border-slate-100 pt-3">
@@ -153,6 +207,18 @@ export function MyOrders() {
             </Card>
           ))}
         </div>
+      )}
+
+      {reviewing && user && (
+        <OrderReviewDialog
+          productTitle={reviewing.title}
+          productSlug={
+            productsRepo.all().find((p) => p.id === reviewing.productId)?.slug ??
+            ""
+          }
+          review={existingReview(user.id, reviewing.productId, MOCK_REVIEWS)}
+          onClose={() => setReviewing(null)}
+        />
       )}
     </>
   );

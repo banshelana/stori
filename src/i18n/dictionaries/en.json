@@ -375,7 +375,14 @@
     "signInToReview": "Sign in to review a product you have bought.",
     "purchaseToReview": "Only customers who have received this product can review it.",
     "alreadyReviewed": "You have already reviewed this product.",
-    "unverified": "Not a verified purchase"
+    "unverified": "Not a verified purchase",
+    "yourReview": "Your review",
+    "writeShort": "Review this",
+    "viewOnProduct": "View on product page",
+    "writtenOn": "Written on {date}",
+    "pendingExplain": "Your review is waiting to be checked, so it is not on the product page yet. Nothing more is needed from you.",
+    "notReviewedYet": "You have not reviewed this yet",
+    "notReviewedHint": "Open the product page to share what you thought."
   },
   "contact": {
     "subject": "Subject",
