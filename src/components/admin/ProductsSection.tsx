@@ -9,8 +9,10 @@ import {
 } from "@/components/form/Field";
 import { GalleryUpload } from "@/components/form/ImageUpload";
 import { AdjustmentsEditor } from "@/components/admin/AdjustmentsEditor";
+import { ProductImportExport } from "@/components/admin/ProductImportExport";
 import { DataTable, Pagination, type Column } from "@/components/panel/DataTable";
 import { FilterToolbar, NewButton } from "@/components/panel/FilterToolbar";
+import { Icon } from "@/components/panel/Icon";
 import { ConfirmDialog, Modal } from "@/components/panel/Modal";
 import { Badge, PageHeader } from "@/components/panel/ui";
 import { LOCALE_LABEL, LOCALES, type Locale } from "@/i18n/config";
@@ -25,6 +27,7 @@ import { crossedIntoStock, pendingFor } from "@/lib/stockAlerts";
 import { messagesRepo, stockAlertsRepo } from "@/lib/data/repositories";
 import { formatNumber, formatPrice } from "@/lib/format";
 import { primaryImageSrc } from "@/lib/product";
+import { slugify } from "@/lib/productCsv";
 import { MOCK_REVIEWS } from "@/lib/data/reviews-data";
 import { ratingFor } from "@/lib/reviews";
 import type {
@@ -76,15 +79,6 @@ const BLANK: FormState = {
   featured: false,
 };
 
-/** Lowercase, dashes, no leading/trailing dash — matches the URL contract. */
-function slugify(value: string): string {
-  return value
-    .toLowerCase()
-    .trim()
-    .replace(/[^a-z0-9]+/g, "-")
-    .replace(/^-+|-+$/g, "");
-}
-
 export function ProductsSection() {
   const { t, locale } = useI18n();
   const { can } = useAuth();
@@ -97,6 +91,7 @@ export function ProductsSection() {
   const [deleting, setDeleting] = useState<Product | null>(null);
   const [pending, setPending] = useState(false);
   const [notified, setNotified] = useState<number | null>(null);
+  const [bulk, setBulk] = useState(false);
 
   const canWrite = can("products.write");
 
@@ -301,12 +296,22 @@ export function ProductsSection() {
       <PageHeader
         title={t("admin.products")}
         action={
-          canWrite && (
-            <NewButton
-              label={t("admin.newProduct")}
-              onClick={() => setEditing("new")}
-            />
-          )
+          <div className="flex flex-wrap items-center gap-2">
+            <button
+              type="button"
+              onClick={() => setBulk(true)}
+              className="flex items-center gap-2 rounded-lg border border-slate-200 px-4 py-2.5 text-sm font-medium text-slate-600 hover:bg-slate-50"
+            >
+              <Icon name="upload" className="h-4 w-4" />
+              {t("productCsv.title")}
+            </button>
+            {canWrite && (
+              <NewButton
+                label={t("admin.newProduct")}
+                onClick={() => setEditing("new")}
+              />
+            )}
+          </div>
         }
       />
 
@@ -406,6 +411,15 @@ export function ProductsSection() {
           pending={pending}
           onSave={handleSave}
           onCancel={() => setEditing(null)}
+        />
+      )}
+
+      {bulk && (
+        <ProductImportExport
+          canWrite={canWrite}
+          onDone={list.reload}
+          onClose={() => setBulk(false)}
+          onRestock={canWrite ? notifySubscribers : undefined}
         />
       )}
 
