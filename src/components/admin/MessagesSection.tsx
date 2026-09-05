@@ -78,6 +78,7 @@ function MessagesTab() {
   const list = useResourceList(messagesRepo, {
     initialSortKey: "sentAt",
     initialSortDir: "desc",
+     rangeField: "sentAt",
   });
 
   const [composing, setComposing] = useState(false);
@@ -223,6 +224,9 @@ function MessagesTab() {
         onFilter={list.setFilter}
         onReset={list.reset}
         hasActiveFilters={list.hasActiveFilters}
+        range={list.range}
+        onRange={list.setRange}
+        rangeLabel={t("range.sent")}
         filters={[
           {
             key: "channel",

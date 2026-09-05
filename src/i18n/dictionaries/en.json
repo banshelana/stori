@@ -53,7 +53,9 @@
     "disabled": "Disabled",
     "enable": "Enable",
     "disable": "Disable",
-    "activeLabel": "Active (visible in the store)"
+    "activeLabel": "Active (visible in the store)",
+    "from": "From",
+    "to": "To"
   },
   "nav": {
     "home": "Home",
@@ -264,7 +266,9 @@
     "contact": "Questions about this document: {email} · {phone}",
     "rowCount": "{count} orders",
     "coordinates": "Map location: {lat}, {lon}",
-    "cancelledExcluded": "Cancelled orders are listed but excluded from the total."
+    "cancelledExcluded": "Cancelled orders are listed but excluded from the total.",
+    "customerCount": "{count} customers",
+    "activeOfTotal": "{active} of {total} active"
   },
   "product": {
     "addToCart": "Add to cart",
@@ -731,6 +735,16 @@
     "clear": "Clear",
     "previousMonth": "Previous month",
     "nextMonth": "Next month"
+  },
+  "range": {
+    "orderDate": "Order date",
+    "paidOn": "Paid on",
+    "received": "Received",
+    "sent": "Sent",
+    "validBetween": "Valid between",
+    "between": "between",
+    "since": "since",
+    "until": "until"
   },
   "ticket": {
     "status": {

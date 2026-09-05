@@ -46,7 +46,12 @@ function toMajor(minor: number): string {
 export function CouponsSection() {
   const { t, locale } = useI18n();
   const { can } = useAuth();
-  const list = useResourceList(couponsRepo, { initialSortKey: "code" });
+  const list = useResourceList(couponsRepo, {
+    initialSortKey: "code",
+    // A coupon occupies a period, so the window is matched by overlap.
+    // See couponsRepo's rangeMatch.
+    rangeField: "startsAt",
+  });
 
   const [editing, setEditing] = useState<Coupon | "new" | null>(null);
   const [deleting, setDeleting] = useState<Coupon | null>(null);
@@ -191,6 +196,9 @@ export function CouponsSection() {
         onFilter={list.setFilter}
         onReset={list.reset}
         hasActiveFilters={list.hasActiveFilters}
+        range={list.range}
+        onRange={list.setRange}
+        rangeLabel={t("range.validBetween")}
         filters={[
           {
             key: "active",

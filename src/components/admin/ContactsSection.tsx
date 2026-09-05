@@ -28,6 +28,7 @@ export function ContactsSection() {
   const list = useResourceList(contactsRepo, {
     initialSortKey: "createdAt",
     initialSortDir: "desc",
+     rangeField: "createdAt",
   });
 
   const [viewing, setViewing] = useState<Contact | null>(null);
@@ -121,6 +122,9 @@ export function ContactsSection() {
         onFilter={list.setFilter}
         onReset={list.reset}
         hasActiveFilters={list.hasActiveFilters}
+        range={list.range}
+        onRange={list.setRange}
+        rangeLabel={t("range.received")}
         filters={[
           {
             key: "status",

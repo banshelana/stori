@@ -1,5 +1,6 @@
 import { localized } from "@/i18n/localized";
 import { createRepository } from "@/lib/data/repository";
+import { rangeOverlaps } from "@/lib/dateRange";
 import {
   MOCK_CONTACTS,
   MOCK_ORDERS,
@@ -207,6 +208,10 @@ export const couponsRepo = createRepository<Coupon>({
     usedCount: (c) => c.usedCount,
     endsAt: (c) => c.endsAt ?? "",
   },
+  // A coupon is valid across a period. Asking which coupons applied
+  // during August means overlap, not "starts in August" — a permanent
+  // coupon started years ago and still counts.
+  rangeMatch: (c, range) => rangeOverlaps(c, range),
 });
 
 export const ticketRepliesRepo = createRepository<TicketReply>({

@@ -1,8 +1,10 @@
 "use client";
 
+import { DateField } from "@/components/form/DateField";
 import { Icon } from "@/components/panel/Icon";
 import type { Option } from "@/components/form/Field";
 import { useI18n } from "@/i18n/I18nProvider";
+import { rangeBounds, type DateRange } from "@/lib/dateRange";
 
 export interface FilterDef {
   key: string;
@@ -20,6 +22,9 @@ export function FilterToolbar({
   onReset,
   hasActiveFilters,
   placeholder,
+  range,
+  onRange,
+  rangeLabel,
 }: {
   q: string;
   onQ: (value: string) => void;
@@ -29,6 +34,11 @@ export function FilterToolbar({
   onReset: () => void;
   hasActiveFilters: boolean;
   placeholder?: string;
+  /** Omit to leave the section without a date filter. */
+  range?: DateRange;
+  onRange?: (next: DateRange) => void;
+  /** What the dates mean here — "Order date", "Sent", "Valid between". */
+  rangeLabel?: string;
 }) {
   const { t } = useI18n();
 
@@ -79,6 +89,28 @@ export function FilterToolbar({
           </select>
         </div>
       ))}
+
+      {range && onRange && (
+        <div className="flex min-w-0 flex-wrap items-end gap-2">
+          <DateField
+            label={rangeLabel ? `${rangeLabel} — ${t("common.from")}` : t("common.from")}
+            value={range.from}
+            // Capping each field by the other means an inverted range
+            // cannot be picked; an inverted range shows nothing, which
+            // reads as "no data" rather than as a mistake.
+            max={rangeBounds(range).fromMax}
+            onChange={(from) => onRange({ ...range, from })}
+            className="min-w-40"
+          />
+          <DateField
+            label={t("common.to")}
+            value={range.to}
+            min={rangeBounds(range).toMin}
+            onChange={(to) => onRange({ ...range, to })}
+            className="min-w-40"
+          />
+        </div>
+      )}
 
       {hasActiveFilters && (
         <button

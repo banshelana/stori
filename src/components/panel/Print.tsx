@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { Icon } from "@/components/panel/Icon";
 import { useI18n } from "@/i18n/I18nProvider";
 import { localized } from "@/i18n/localized";
@@ -33,6 +33,41 @@ export function usePrint() {
     window.print();
     restore();
   }, []);
+}
+
+/**
+ * Runs a print over rows fetched on demand.
+ *
+ * A printed list has to carry every row matching the current filters,
+ * not the page the operator happens to be looking at — so the rows are
+ * fetched when the button is pressed, rendered, printed, and dropped.
+ *
+ * The print fires from a plain effect rather than requestAnimationFrame:
+ * rAF is throttled to nothing in a background tab, which would leave the
+ * dialog unopened and the sheet mounted forever.
+ */
+export function usePrintRows<T>(
+  fetchAll: () => Promise<T[]>,
+  filename: () => string
+) {
+  const [rows, setRows] = useState<T[] | null>(null);
+  const print = usePrint();
+
+  // Refs, so the effect always calls the current closures without
+  // re-running every time the parent re-renders.
+  const latest = useRef({ fetchAll, filename });
+  latest.current = { fetchAll, filename };
+
+  useEffect(() => {
+    if (!rows) return;
+    print(latest.current.filename());
+    setRows(null);
+  }, [rows, print]);
+
+  return {
+    rows,
+    start: async () => setRows(await latest.current.fetchAll()),
+  };
 }
 
 /** The button that starts a print, hidden from the print itself. */
@@ -112,5 +147,81 @@ export function PrintFooter() {
         phone: settings.supportPhone,
       })}
     </footer>
+  );
+}
+
+/**
+ * A column of a printed table. Deliberately not the on-screen
+ * `Column<T>`: that one hides columns on narrow viewports and carries an
+ * actions column, neither of which means anything on paper.
+ */
+export interface PrintColumn<T> {
+  header: string;
+  render: (row: T) => React.ReactNode;
+  align?: "start" | "end";
+}
+
+/** The tabular half of the export, shared by every list that prints. */
+export function PrintTable<T>({
+  columns,
+  rows,
+  rowKey,
+  footer,
+}: {
+  columns: PrintColumn<T>[];
+  rows: T[];
+  rowKey: (row: T) => string;
+  /** Extra `<tr>`s for the foot — totals, subtotals. */
+  footer?: React.ReactNode;
+}) {
+  return (
+    <table className="w-full border-collapse text-xs">
+      <thead>
+        <tr className="border-b-2 border-slate-900">
+          {columns.map((column, i) => (
+            <th
+              key={i}
+              className={`px-1.5 py-1.5 font-semibold text-slate-900 ${
+                column.align === "end" ? "text-end" : "text-start"
+              }`}
+            >
+              {column.header}
+            </th>
+          ))}
+        </tr>
+      </thead>
+
+      <tbody>
+        {rows.map((row) => (
+          <tr key={rowKey(row)} className="border-b border-slate-200">
+            {columns.map((column, i) => (
+              <PrintCell key={i} align={column.align}>
+                {column.render(row)}
+              </PrintCell>
+            ))}
+          </tr>
+        ))}
+      </tbody>
+
+      {footer && <tfoot>{footer}</tfoot>}
+    </table>
+  );
+}
+
+export function PrintCell({
+  children,
+  align = "start",
+}: {
+  children?: React.ReactNode;
+  align?: "start" | "end";
+}) {
+  return (
+    <td
+      className={`px-1.5 py-1.5 align-top text-slate-700 ${
+        align === "end" ? "text-end" : "text-start"
+      }`}
+    >
+      {children}
+    </td>
   );
 }

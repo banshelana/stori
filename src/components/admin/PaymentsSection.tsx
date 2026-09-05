@@ -33,6 +33,7 @@ export function PaymentsSection() {
   const list = useResourceList(paymentsRepo, {
     initialSortKey: "paidAt",
     initialSortDir: "desc",
+     rangeField: "paidAt",
   });
 
   const [editing, setEditing] = useState<Payment | null>(null);
@@ -154,6 +155,9 @@ export function PaymentsSection() {
         onFilter={list.setFilter}
         onReset={list.reset}
         hasActiveFilters={list.hasActiveFilters}
+        range={list.range}
+        onRange={list.setRange}
+        rangeLabel={t("range.paidOn")}
         filters={[
           {
             key: "status",

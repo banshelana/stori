@@ -10,6 +10,15 @@ import {
 import { DataTable, Pagination, type Column } from "@/components/panel/DataTable";
 import { FilterToolbar, NewButton } from "@/components/panel/FilterToolbar";
 import { ConfirmDialog, Modal } from "@/components/panel/Modal";
+import {
+  PrintButton,
+  PrintCell,
+  PrintFooter,
+  PrintHeader,
+  PrintTable,
+  usePrintRows,
+  type PrintColumn,
+} from "@/components/panel/Print";
 import { Badge, PageHeader } from "@/components/panel/ui";
 import { useI18n } from "@/i18n/I18nProvider";
 import { useAuth } from "@/lib/auth/auth-context";
@@ -17,7 +26,8 @@ import { ROLE_SUB_ROLES } from "@/lib/auth/permissions";
 import type { Sex, SubRole } from "@/lib/auth/types";
 import { customersRepo } from "@/lib/data/repositories";
 import type { MockUser } from "@/lib/data/users";
-import { formatDate } from "@/lib/format";
+import { formatDate, formatNumber } from "@/lib/format";
+import { describeFilters, printFilename } from "@/lib/printing";
 import { useFormErrors } from "@/lib/useFormErrors";
 import { useResourceList } from "@/lib/useResourceList";
 import {
@@ -112,6 +122,26 @@ export function CustomersSection() {
     }
   }
 
+  const sheet = usePrintRows<MockUser>(
+    // Every customer matching the current filters, not the visible page.
+    async () => {
+      const all = await customersRepo.list({
+        q: list.q,
+        filters: list.filters,
+        sortKey: list.sortKey,
+        sortDir: list.sortDir,
+        page: 1,
+        pageSize: Math.max(list.total, 1),
+      });
+      return all.rows;
+    },
+    () =>
+      printFilename([
+        t("admin.customers"),
+        new Date().toISOString().slice(0, 10),
+      ])
+  );
+
   const columns: Column<MockUser>[] = [
     {
       key: "name",
@@ -189,12 +219,15 @@ export function CustomersSection() {
       <PageHeader
         title={t("admin.customers")}
         action={
-          canWrite && (
-            <NewButton
-              label={t("admin.newCustomer")}
-              onClick={() => setEditing("new")}
-            />
-          )
+          <div className="flex flex-wrap items-center gap-2">
+            <PrintButton onClick={sheet.start} />
+            {canWrite && (
+              <NewButton
+                label={t("admin.newCustomer")}
+                onClick={() => setEditing("new")}
+              />
+            )}
+          </div>
         }
       />
 
@@ -301,6 +334,33 @@ export function CustomersSection() {
         <CustomerLocationModal
           customer={viewingLocation}
           onClose={() => setViewingLocation(null)}
+        />
+      )}
+
+      {sheet.rows && (
+        <CustomersPrintSheet
+          rows={sheet.rows}
+          filterLine={describeFilters(
+            [
+              { label: t("common.search"), value: list.q },
+              {
+                label: t("admin.subRole"),
+                value: list.filters.subRole
+                  ? t(`roles.${list.filters.subRole}`)
+                  : undefined,
+              },
+              {
+                label: t("common.status"),
+                value:
+                  list.filters.active === undefined
+                    ? undefined
+                    : list.filters.active === "true"
+                      ? t("common.active")
+                      : t("common.disabled"),
+              },
+            ],
+            locale === "fa" ? "، " : " · "
+          )}
         />
       )}
 
@@ -483,5 +543,97 @@ function CustomerForm({
         )}
       </form>
     </Modal>
+  );
+}
+
+/**
+ * The customer list as a printed sheet.
+ *
+ * Carries the columns the on-screen table hides on a narrow viewport,
+ * and closes with a headcount split by account state — the one figure
+ * anyone reads a customer list for.
+ */
+function CustomersPrintSheet({
+  rows,
+  filterLine,
+}: {
+  rows: MockUser[];
+  filterLine: string;
+}) {
+  const { t, locale } = useI18n();
+  const active = rows.filter((u) => u.active).length;
+
+  return (
+    <div className="print-only print-area">
+      <PrintHeader
+        title={t("admin.customers")}
+        subtitle={[
+          t("print.customerCount", { count: formatNumber(rows.length, locale) }),
+          filterLine,
+        ]
+          .filter(Boolean)
+          .join(locale === "fa" ? "، " : " · ")}
+      />
+
+      <PrintTable
+        rows={rows}
+        rowKey={(u) => u.id}
+        columns={
+          [
+            {
+              header: t("common.name"),
+              render: (u) => (
+                <span className="font-medium">
+                  {u.firstName} {u.lastName}
+                </span>
+              ),
+            },
+            {
+              header: t("auth.mobile"),
+              render: (u) => <span className="force-ltr">{u.mobile}</span>,
+            },
+            {
+              header: t("account.email"),
+              render: (u) => <span className="force-ltr">{u.email ?? "—"}</span>,
+            },
+            {
+              header: t("admin.subRole"),
+              render: (u) => t(`roles.${u.subRole}`),
+            },
+            {
+              // "Date" alone says nothing on a customer sheet.
+              header: t("orderDetail.customerSince"),
+              render: (u) => formatDate(u.createdAt, locale),
+            },
+            {
+              header: t("common.status"),
+              render: (u) =>
+                u.active ? t("common.active") : t("common.disabled"),
+            },
+          ] satisfies PrintColumn<MockUser>[]
+        }
+        footer={
+          <tr className="border-t-2 border-slate-900">
+            <PrintCell>
+              <span className="font-bold">{t("common.total")}</span>
+            </PrintCell>
+            <PrintCell />
+            <PrintCell />
+            <PrintCell />
+            <PrintCell />
+            <PrintCell>
+              <span className="font-bold">
+                {t("print.activeOfTotal", {
+                  active: formatNumber(active, locale),
+                  total: formatNumber(rows.length, locale),
+                })}
+              </span>
+            </PrintCell>
+          </tr>
+        }
+      />
+
+      <PrintFooter />
+    </div>
   );
 }

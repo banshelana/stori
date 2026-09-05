@@ -1,3 +1,5 @@
+import { withinRange, type DateRange } from "@/lib/dateRange";
+
 // ---------------------------------------------------------------
 // Generic in-memory repository backing the admin CRUD screens.
 //
@@ -16,6 +18,12 @@ export interface ListQuery {
   q?: string;
   /** Exact-match filters, e.g. { status: "pending" }. */
   filters?: Record<string, string | undefined>;
+  /**
+   * Inclusive date window. `field` names the column it applies to, which
+   * differs per entity — an order is filtered on createdAt, a payment on
+   * paidAt, a message on sentAt.
+   */
+  range?: { field: string; from: string; to: string };
   sortKey?: string;
   sortDir?: "asc" | "desc";
   page?: number;
@@ -48,6 +56,7 @@ export function createRepository<T extends Identifiable>({
   idPrefix,
   searchable,
   sorters = {},
+  rangeMatch,
   latency = 250,
 }: {
   data: T[];
@@ -56,6 +65,12 @@ export function createRepository<T extends Identifiable>({
   searchable: (row: T) => string[];
   /** Comparable value per sortable column key. */
   sorters?: Record<string, (row: T) => string | number>;
+  /**
+   * Decides whether a row falls in a date window. Only needed when the
+   * row does not sit on one date: a coupon spans a period, so it is
+   * matched by overlap rather than containment.
+   */
+  rangeMatch?: (row: T, range: DateRange, field: string) => boolean;
   latency?: number;
 }): Repository<T> {
   let sequence = data.length;
@@ -74,6 +89,7 @@ export function createRepository<T extends Identifiable>({
       const {
         q,
         filters = {},
+        range,
         sortKey,
         sortDir = "asc",
         page = 1,
@@ -97,6 +113,18 @@ export function createRepository<T extends Identifiable>({
         rows = rows.filter(
           (row) => String((row as Record<string, unknown>)[key]) === value
         );
+      }
+
+      if (range && (range.from || range.to)) {
+        const window: DateRange = { from: range.from, to: range.to };
+        const matches =
+          rangeMatch ??
+          ((row: T, r: DateRange, field: string) =>
+            withinRange(
+              (row as unknown as Record<string, string | null>)[field] ?? null,
+              r
+            ));
+        rows = rows.filter((row) => matches(row, window, range.field));
       }
 
       const sorter = sortKey ? sorters[sortKey] : undefined;

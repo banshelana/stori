@@ -53,7 +53,9 @@
     "disabled": "غیرفعال",
     "enable": "فعال‌سازی",
     "disable": "غیرفعال‌سازی",
-    "activeLabel": "فعال (نمایش در فروشگاه)"
+    "activeLabel": "فعال (نمایش در فروشگاه)",
+    "from": "از",
+    "to": "تا"
   },
   "nav": {
     "home": "خانه",
@@ -264,7 +266,9 @@
     "contact": "پرسش درباره این سند: {email} · {phone}",
     "rowCount": "{count} سفارش",
     "coordinates": "موقعیت روی نقشه: {lat}، {lon}",
-    "cancelledExcluded": "سفارش‌های لغوشده در فهرست هستند ولی در جمع کل حساب نمی‌شوند."
+    "cancelledExcluded": "سفارش‌های لغوشده در فهرست هستند ولی در جمع کل حساب نمی‌شوند.",
+    "customerCount": "{count} مشتری",
+    "activeOfTotal": "{active} از {total} فعال"
   },
   "product": {
     "addToCart": "افزودن به سبد",
@@ -731,6 +735,16 @@
     "clear": "پاک کردن",
     "previousMonth": "ماه قبل",
     "nextMonth": "ماه بعد"
+  },
+  "range": {
+    "orderDate": "تاریخ سفارش",
+    "paidOn": "تاریخ پرداخت",
+    "received": "تاریخ دریافت",
+    "sent": "تاریخ ارسال",
+    "validBetween": "اعتبار بین",
+    "between": "بین",
+    "since": "از",
+    "until": "تا"
   },
   "ticket": {
     "status": {

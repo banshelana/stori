@@ -6,6 +6,7 @@ import type {
   ListResult,
   Repository,
 } from "@/lib/data/repository";
+import { EMPTY_RANGE, isEmptyRange, type DateRange } from "@/lib/dateRange";
 
 /**
  * Owns the search / filter / sort / page state for one admin section and
@@ -21,16 +22,23 @@ export function useResourceList<T extends Identifiable>(
     initialSortKey,
     initialSortDir = "asc",
     initialFilters = {},
+    rangeField,
   }: {
     pageSize?: number;
     initialSortKey?: string;
     initialSortDir?: "asc" | "desc";
     initialFilters?: Record<string, string | undefined>;
+    /**
+     * Column the date-range filter applies to. Omit and the section has
+     * no range filter — the toolbar only renders one when asked to.
+     */
+    rangeField?: string;
   } = {}
 ) {
   const [q, setQ] = useState("");
   const [debouncedQ, setDebouncedQ] = useState("");
   const [filters, setFilters] = useState(initialFilters);
+  const [range, setRangeState] = useState<DateRange>(EMPTY_RANGE);
   const [sortKey, setSortKey] = useState(initialSortKey);
   const [sortDir, setSortDir] = useState<"asc" | "desc">(initialSortDir);
   const [page, setPage] = useState(1);
@@ -54,9 +62,14 @@ export function useResourceList<T extends Identifiable>(
       return;
     }
     setPage(1);
-  }, [debouncedQ, filters, sortKey, sortDir]);
+  }, [debouncedQ, filters, sortKey, sortDir, range]);
 
   const filterKey = JSON.stringify(filters);
+  const rangeKey = `${rangeField ?? ""}|${range.from}|${range.to}`;
+  const rangeQuery =
+    rangeField && !isEmptyRange(range)
+      ? { field: rangeField, from: range.from, to: range.to }
+      : undefined;
 
   useEffect(() => {
     let active = true;
@@ -64,7 +77,15 @@ export function useResourceList<T extends Identifiable>(
     setError(null);
 
     repo
-      .list({ q: debouncedQ, filters, sortKey, sortDir, page, pageSize })
+      .list({
+        q: debouncedQ,
+        filters,
+        range: rangeQuery,
+        sortKey,
+        sortDir,
+        page,
+        pageSize,
+      })
       .then((data) => {
         if (!active) return;
         setResult(data);
@@ -79,9 +100,20 @@ export function useResourceList<T extends Identifiable>(
     return () => {
       active = false;
     };
-    // filterKey stands in for `filters`, whose identity changes every render.
+    // filterKey and rangeKey stand in for `filters` and `range`, whose
+    // identities change every render.
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [repo, debouncedQ, filterKey, sortKey, sortDir, page, pageSize, reloadToken]);
+  }, [
+    repo,
+    debouncedQ,
+    filterKey,
+    rangeKey,
+    sortKey,
+    sortDir,
+    page,
+    pageSize,
+    reloadToken,
+  ]);
 
   const reload = useCallback(() => setReloadToken((n) => n + 1), []);
 
@@ -101,16 +133,22 @@ export function useResourceList<T extends Identifiable>(
     setFilters((prev) => ({ ...prev, [key]: value || undefined }));
   }, []);
 
+  const setRange = useCallback((next: DateRange) => setRangeState(next), []);
+
   const reset = useCallback(() => {
     setQ("");
     setFilters(initialFilters);
+    setRangeState(EMPTY_RANGE);
     setPage(1);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const hasActiveFilters = useMemo(
-    () => Boolean(q) || Object.values(filters).some(Boolean),
-    [q, filters]
+    () =>
+      Boolean(q) ||
+      Object.values(filters).some(Boolean) ||
+      !isEmptyRange(range),
+    [q, filters, range]
   );
 
   return {
@@ -124,6 +162,9 @@ export function useResourceList<T extends Identifiable>(
     setQ,
     filters,
     setFilter,
+    range,
+    setRange,
+    rangeField,
     sortKey,
     sortDir,
     toggleSort,
