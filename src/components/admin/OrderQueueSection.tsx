@@ -10,7 +10,9 @@ import {
   ORDER_STATUS_TONE,
   PageHeader,
 } from "@/components/panel/ui";
+import Link from "next/link";
 import { useI18n } from "@/i18n/I18nProvider";
+import { useLocaleHref } from "@/i18n/navigation";
 import { localized } from "@/i18n/localized";
 import { useAuth } from "@/lib/auth/auth-context";
 import type { Order, OrderStatus } from "@/lib/data/commerce";
@@ -316,6 +318,7 @@ function OrderCard({
   onAdvance: (order: Order, next: OrderStatus) => void;
 }) {
   const { t, locale } = useI18n();
+  const href = useLocaleHref();
   const days = waitingDays(order);
   const urgency = urgencyOf(days, overdueAfterDays);
   const style = URGENCY_STYLE[urgency];
@@ -396,6 +399,14 @@ function OrderCard({
           {formatPrice(order.total, order.currency, locale)}
         </span>
       </div>
+
+      <Link
+        href={href(`/admin/orders/${order.id}`)}
+        className="mt-3 flex items-center justify-center gap-1.5 rounded-lg border border-slate-200 px-3 py-2 text-sm font-semibold text-slate-600 transition-colors hover:border-indigo-200 hover:bg-indigo-50 hover:text-indigo-700"
+      >
+        <Icon name="inbox" className="h-4 w-4" />
+        {t("orderDetail.open")}
+      </Link>
 
       {/* One-click transitions — the whole point of a work queue. */}
       {canWrite && (

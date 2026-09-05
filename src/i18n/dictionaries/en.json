@@ -224,6 +224,21 @@
       "canceled": "Canceled"
     }
   },
+  "orderDetail": {
+    "open": "Full details",
+    "subtitle": "Everything linked to this order — items, payments, reviews and the buyer.",
+    "notFound": "Order not found",
+    "notFoundHint": "This order may have been deleted, or the link is out of date.",
+    "deleted": "Deleted product",
+    "noReview": "No review written for this item.",
+    "shortfall": "Outstanding balance of {amount} — settled payments do not cover the order total.",
+    "addressCaveat": "This is the customer's current default address, not a record of where this order was shipped.",
+    "orderCount": "Orders placed",
+    "lifetimeValue": "Lifetime value",
+    "customerSince": "Customer since",
+    "otherOrders": "Other orders",
+    "noAddress": "This customer has no saved address."
+  },
   "payment": {
     "title": "Payments",
     "reference": "Reference",

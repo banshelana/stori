@@ -11,6 +11,8 @@ import {
   PageHeader,
 } from "@/components/panel/ui";
 import { useI18n } from "@/i18n/I18nProvider";
+import { useLocaleHref } from "@/i18n/navigation";
+import { useRouter } from "next/navigation";
 import { localized } from "@/i18n/localized";
 import { useAuth } from "@/lib/auth/auth-context";
 import {
@@ -35,6 +37,8 @@ export function SalesSection() {
   const { t, locale } = useI18n();
   const { can } = useAuth();
   const customerName = useCustomerName();
+  const href = useLocaleHref();
+  const router = useRouter();
   const list = useResourceList(ordersRepo, {
     initialSortKey: "createdAt",
     initialSortDir: "desc",
@@ -174,6 +178,11 @@ export function SalesSection() {
         sortDir={list.sortDir}
         onSort={list.toggleSort}
         actions={[
+          {
+            icon: "inbox",
+            label: t("orderDetail.open"),
+            onClick: (o) => router.push(href(`/admin/orders/${o.id}`)),
+          },
           {
             icon: canWrite ? "pencil" : "eye",
             label: canWrite ? t("common.edit") : t("common.view"),
