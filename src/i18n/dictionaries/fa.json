@@ -258,6 +258,14 @@
       "transfer": "انتقال بانکی"
     }
   },
+  "print": {
+    "export": "چاپ / PDF",
+    "generatedOn": "تهیه‌شده در {date}",
+    "contact": "پرسش درباره این سند: {email} · {phone}",
+    "rowCount": "{count} سفارش",
+    "coordinates": "موقعیت روی نقشه: {lat}، {lon}",
+    "cancelledExcluded": "سفارش‌های لغوشده در فهرست هستند ولی در جمع کل حساب نمی‌شوند."
+  },
   "product": {
     "addToCart": "افزودن به سبد",
     "added": "افزوده شد",

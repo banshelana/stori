@@ -403,3 +403,107 @@ html[lang="fa"] body {
     transform: none;
   }
 }
+
+/* ---------------------------------------------------------------
+   Print / PDF export
+
+   "Save as PDF" in the browser's print dialog is the export. A JS PDF
+   library would have to shape Persian itself, which none of them do —
+   the text would come out as disconnected letters in the wrong order.
+   The print pipeline already has the vendored Vazirmatn face and full
+   bidi, and emits selectable vector text.
+
+   Three classes carry it:
+     .print-area  the one region that reaches the paper
+     .print-hide  on screen only — buttons, nav, anything interactive
+     .print-only  on paper only — letterheads, totals, footnotes
+   --------------------------------------------------------------- */
+.print-only {
+  display: none;
+}
+
+@media print {
+  @page {
+    size: A4;
+    margin: 14mm;
+  }
+
+  html,
+  body {
+    background: #fff;
+  }
+
+  /* Status badges and table rules carry meaning, so keep the colours the
+     browser would otherwise drop to save ink. */
+  *,
+  *::before,
+  *::after {
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+
+  /* Everything outside the print area is hidden but still laid out, so
+     the area keeps the widths it was designed against. The !important is
+     load-bearing: the hiding rule below is more specific than a bare
+     class would be. */
+  body:has(.print-area) * {
+    visibility: hidden;
+  }
+
+  .print-area,
+  .print-area * {
+    visibility: visible !important;
+  }
+
+  .print-area {
+    position: absolute;
+    inset-block-start: 0;
+    inset-inline-start: 0;
+    width: 100%;
+    padding: 0;
+    margin: 0;
+  }
+
+  .print-hide {
+    display: none !important;
+  }
+
+  .print-only {
+    display: block;
+  }
+
+  /* A card or a row split across a page break is unreadable. */
+  .print-block {
+    break-inside: avoid;
+  }
+
+  thead {
+    display: table-header-group;
+  }
+
+  tr,
+  img {
+    break-inside: avoid;
+  }
+
+  /* Shadows and hover lifts are screen affordances; on paper they are
+     grey smudges. */
+  .card-lift,
+  .animate-fade-in,
+  .animate-fade-up {
+    animation: none !important;
+    transform: none !important;
+  }
+
+  .print-area * {
+    box-shadow: none !important;
+  }
+
+  /* Scroll containers must spill onto the page instead of clipping. */
+  .print-area .overflow-y-auto,
+  .print-area .overflow-x-auto,
+  .print-area .overflow-hidden {
+    overflow: visible !important;
+    max-height: none !important;
+  }
+}

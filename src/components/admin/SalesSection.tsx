@@ -1,10 +1,16 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { SelectField } from "@/components/form/Field";
 import { DataTable, Pagination, type Column } from "@/components/panel/DataTable";
 import { FilterToolbar } from "@/components/panel/FilterToolbar";
 import { ConfirmDialog, Modal } from "@/components/panel/Modal";
+import {
+  PrintButton,
+  PrintFooter,
+  PrintHeader,
+  usePrint,
+} from "@/components/panel/Print";
 import {
   Badge,
   ORDER_STATUS_TONE,
@@ -22,6 +28,11 @@ import {
 } from "@/lib/data/commerce";
 import { customersRepo, ordersRepo } from "@/lib/data/repositories";
 import { formatDate, formatNumber, formatPrice } from "@/lib/format";
+import {
+  describeFilters,
+  printFilename,
+  totalsByCurrency,
+} from "@/lib/printing";
 import { useResourceList } from "@/lib/useResourceList";
 
 /** Resolves the buyer for display; orders store only the id. */
@@ -47,8 +58,39 @@ export function SalesSection() {
   const [editing, setEditing] = useState<Order | null>(null);
   const [deleting, setDeleting] = useState<Order | null>(null);
   const [pending, setPending] = useState(false);
+  // Rows for the printed sheet. Held apart from `list.rows` because a
+  // printed list of orders showing only page 1 of 24 is a trap.
+  const [printRows, setPrintRows] = useState<Order[] | null>(null);
 
   const canWrite = can("sales.write");
+  const print = usePrint();
+
+  /** Refetches the whole filtered set — not just the visible page. */
+  async function handlePrint() {
+    const all = await ordersRepo.list({
+      q: list.q,
+      filters: list.filters,
+      sortKey: list.sortKey,
+      sortDir: list.sortDir,
+      page: 1,
+      pageSize: Math.max(list.total, 1),
+    });
+    setPrintRows(all.rows);
+  }
+
+  // The sheet has to be in the DOM before the dialog opens, and an effect
+  // runs after React has committed it. Deliberately not requestAnimation-
+  // Frame: it is throttled to nothing in a background tab, so a print
+  // started before switching tabs would never open and the sheet would
+  // stay mounted forever.
+  useEffect(() => {
+    if (!printRows) return;
+    print(
+      printFilename([t("admin.sales"), new Date().toISOString().slice(0, 10)])
+    );
+    setPrintRows(null);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [printRows]);
 
   async function handleSave(status: OrderStatus) {
     if (!editing) return;
@@ -141,7 +183,10 @@ export function SalesSection() {
 
   return (
     <>
-      <PageHeader title={t("admin.sales")} />
+      <PageHeader
+        title={t("admin.sales")}
+        action={<PrintButton onClick={handlePrint} />}
+      />
 
       <FilterToolbar
         q={list.q}
@@ -216,6 +261,25 @@ export function SalesSection() {
           customerName={customerName(editing.userId)}
           onSave={handleSave}
           onCancel={() => setEditing(null)}
+        />
+      )}
+
+      {printRows && (
+        <SalesPrintSheet
+          rows={printRows}
+          filterLine={describeFilters(
+            [
+              { label: t("common.search"), value: list.q },
+              {
+                label: t("common.status"),
+                value: list.filters.status
+                  ? t(`order.status.${list.filters.status}`)
+                  : undefined,
+              },
+            ],
+            locale === "fa" ? "، " : " · "
+          )}
+          customerName={customerName}
         />
       )}
 
@@ -341,5 +405,144 @@ function OrderModal({
         />
       </div>
     </Modal>
+  );
+}
+
+/**
+ * The tabular sheet, rendered only while a print is in flight.
+ *
+ * Deliberately not the on-screen DataTable: that one hides columns on
+ * narrow viewports, paginates, and carries an actions column that means
+ * nothing on paper. A printed list wants every row, every column, and a
+ * total at the bottom.
+ */
+function SalesPrintSheet({
+  rows,
+  filterLine,
+  customerName,
+}: {
+  rows: Order[];
+  filterLine: string;
+  customerName: (userId: string) => string;
+}) {
+  const { t, locale } = useI18n();
+  const totals = totalsByCurrency(rows);
+
+  return (
+    <div className="print-only print-area">
+      <PrintHeader
+        title={t("admin.sales")}
+        subtitle={
+          [
+            t("print.rowCount", { count: formatNumber(rows.length, locale) }),
+            filterLine,
+          ]
+            .filter(Boolean)
+            .join(locale === "fa" ? "، " : " · ")
+        }
+      />
+
+      <table className="w-full border-collapse text-xs">
+        <thead>
+          <tr className="border-b-2 border-slate-900 text-start">
+            <Th>{t("order.orderNo")}</Th>
+            <Th>{t("common.customer")}</Th>
+            <Th>{t("common.date")}</Th>
+            <Th align="end">{t("order.items")}</Th>
+            <Th>{t("common.status")}</Th>
+            <Th align="end">{t("common.amount")}</Th>
+          </tr>
+        </thead>
+
+        <tbody>
+          {rows.map((order) => (
+            <tr key={order.id} className="border-b border-slate-200">
+              <Td>
+                <span className="force-ltr font-medium">{order.reference}</span>
+              </Td>
+              <Td>{customerName(order.userId)}</Td>
+              <Td>{formatDate(order.createdAt, locale)}</Td>
+              <Td align="end">
+                {formatNumber(
+                  order.lines.reduce((sum, l) => sum + l.quantity, 0),
+                  locale
+                )}
+              </Td>
+              <Td>{t(`order.status.${order.status}`)}</Td>
+              <Td align="end">
+                {formatPrice(order.total, order.currency, locale)}
+              </Td>
+            </tr>
+          ))}
+        </tbody>
+
+        <tfoot>
+          {totals.map((row) => (
+            <tr key={row.currency} className="border-t-2 border-slate-900">
+              <Td>
+                <span className="font-bold">{t("common.total")}</span>
+              </Td>
+              <Td>
+                <span className="text-slate-500">{row.currency}</span>
+              </Td>
+              <Td />
+              <Td align="end">{formatNumber(row.count, locale)}</Td>
+              <Td />
+              <Td align="end">
+                <span className="font-bold">
+                  {formatPrice(row.total, row.currency, locale)}
+                </span>
+              </Td>
+            </tr>
+          ))}
+        </tfoot>
+      </table>
+
+      {/* Cancelled orders are listed but left out of the total, which is
+          not obvious from a column of numbers. */}
+      {rows.some((o) => o.status === "canceled") && (
+        <p className="mt-2 text-[11px] text-slate-500">
+          {t("print.cancelledExcluded")}
+        </p>
+      )}
+
+      <PrintFooter />
+    </div>
+  );
+}
+
+function Th({
+  children,
+  align = "start",
+}: {
+  children: React.ReactNode;
+  align?: "start" | "end";
+}) {
+  return (
+    <th
+      className={`px-1.5 py-1.5 font-semibold text-slate-900 ${
+        align === "end" ? "text-end" : "text-start"
+      }`}
+    >
+      {children}
+    </th>
+  );
+}
+
+function Td({
+  children,
+  align = "start",
+}: {
+  children?: React.ReactNode;
+  align?: "start" | "end";
+}) {
+  return (
+    <td
+      className={`px-1.5 py-1.5 align-top text-slate-700 ${
+        align === "end" ? "text-end" : "text-start"
+      }`}
+    >
+      {children}
+    </td>
   );
 }

@@ -7,6 +7,12 @@ import { MapView } from "@/components/MapView";
 import { Icon } from "@/components/panel/Icon";
 import { Rating } from "@/components/Rating";
 import {
+  PrintButton,
+  PrintFooter,
+  PrintHeader,
+  usePrint,
+} from "@/components/panel/Print";
+import {
   Badge,
   Card,
   EmptyState,
@@ -36,11 +42,13 @@ import { formatDate, formatNumber, formatPrice } from "@/lib/format";
 import { isValidLatLon } from "@/lib/map";
 import { buildOrderDetail, paymentShortfall } from "@/lib/orderDetail";
 import { primaryImageSrc } from "@/lib/product";
+import { printFilename } from "@/lib/printing";
 
 export function OrderDetailSection({ orderId }: { orderId: string }) {
   const { t, locale } = useI18n();
   const { can } = useAuth();
   const href = useLocaleHref();
+  const print = usePrint();
 
   const [version, setVersion] = useState(0);
   const [pending, setPending] = useState(false);
@@ -150,19 +158,34 @@ export function OrderDetailSection({ orderId }: { orderId: string }) {
   }
 
   return (
-    <>
-      <PageHeader
+    <div className="print-area">
+      {/* The letterhead below is the printed version of this. */}
+      <div className="print-hide">
+        <PageHeader
+          title={`${t("order.orderNo")} ${order.reference}`}
+          subtitle={t("orderDetail.subtitle")}
+          action={
+            <div className="flex flex-wrap items-center gap-2">
+              <PrintButton
+                onClick={() =>
+                  print(printFilename([t("order.orderNo"), order.reference]))
+                }
+              />
+              <Link
+                href={href("/admin/sales")}
+                className="flex items-center gap-2 rounded-lg border border-slate-200 px-4 py-2.5 text-sm font-medium text-slate-600 hover:bg-slate-50"
+              >
+                <Icon name="arrowRight" className="h-4 w-4 rotate-180 rtl-flip" />
+                {t("common.back")}
+              </Link>
+            </div>
+          }
+        />
+      </div>
+
+      <PrintHeader
         title={`${t("order.orderNo")} ${order.reference}`}
-        subtitle={t("orderDetail.subtitle")}
-        action={
-          <Link
-            href={href("/admin/sales")}
-            className="flex items-center gap-2 rounded-lg border border-slate-200 px-4 py-2.5 text-sm font-medium text-slate-600 hover:bg-slate-50"
-          >
-            <Icon name="arrowRight" className="h-4 w-4 rotate-180 rtl-flip" />
-            {t("common.back")}
-          </Link>
-        }
+        subtitle={customer ? `${customer.firstName} ${customer.lastName}` : undefined}
       />
 
       <div className="grid gap-5 xl:grid-cols-[1.6fr_1fr]">
@@ -186,7 +209,7 @@ export function OrderDetailSection({ orderId }: { orderId: string }) {
               </div>
 
               {canWriteOrders && (
-                <div className="flex flex-wrap gap-1">
+                <div className="print-hide flex flex-wrap gap-1">
                   {ORDER_STATUSES.map((value) => (
                     <button
                       key={value}
@@ -273,7 +296,7 @@ export function OrderDetailSection({ orderId }: { orderId: string }) {
                             type="button"
                             disabled={pending}
                             onClick={() => setApproved(review.id, !review.approved)}
-                            className="rounded-lg border border-slate-200 bg-white px-2.5 py-1 text-xs font-semibold text-slate-600 hover:bg-slate-50 disabled:opacity-60"
+                            className="print-hide rounded-lg border border-slate-200 bg-white px-2.5 py-1 text-xs font-semibold text-slate-600 hover:bg-slate-50 disabled:opacity-60"
                           >
                             {review.approved
                               ? t("common.unapprove")
@@ -411,7 +434,7 @@ export function OrderDetailSection({ orderId }: { orderId: string }) {
 
                 <Link
                   href={href("/admin/customers")}
-                  className="mt-4 inline-flex items-center gap-1.5 text-sm font-semibold text-indigo-600 hover:text-indigo-700"
+                  className="print-hide mt-4 inline-flex items-center gap-1.5 text-sm font-semibold text-indigo-600 hover:text-indigo-700"
                 >
                   <Icon name="users" className="h-4 w-4" />
                   {t("admin.customers")}
@@ -445,9 +468,21 @@ export function OrderDetailSection({ orderId }: { orderId: string }) {
                 </p>
 
                 {pin.length > 0 && (
-                  <div className="mt-3">
-                    <MapView markers={pin} height={200} />
-                  </div>
+                  <>
+                    <div className="print-hide mt-3">
+                      <MapView markers={pin} height={200} />
+                    </div>
+                    {/* Map tiles come out of a printer as grey mush, and
+                        they are fetched from a tile server that may not
+                        answer during a print. The coordinates carry the
+                        same information and always render. */}
+                    <p className="print-only mt-2 text-sm text-slate-500">
+                      {t("print.coordinates", {
+                        lat: pin[0].lat.toFixed(6),
+                        lon: pin[0].lon.toFixed(6),
+                      })}
+                    </p>
+                  </>
                 )}
               </>
             ) : (
@@ -487,7 +522,8 @@ export function OrderDetailSection({ orderId }: { orderId: string }) {
           )}
         </div>
       </div>
-    </>
+      <PrintFooter />
+    </div>
   );
 }
 

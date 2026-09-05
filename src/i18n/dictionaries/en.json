@@ -258,6 +258,14 @@
       "transfer": "Bank transfer"
     }
   },
+  "print": {
+    "export": "Print / PDF",
+    "generatedOn": "Generated {date}",
+    "contact": "Questions about this document: {email} · {phone}",
+    "rowCount": "{count} orders",
+    "coordinates": "Map location: {lat}, {lon}",
+    "cancelledExcluded": "Cancelled orders are listed but excluded from the total."
+  },
   "product": {
     "addToCart": "Add to cart",
     "added": "Added",
